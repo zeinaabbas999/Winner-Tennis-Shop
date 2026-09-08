@@ -1,0 +1,1 @@
+@extends('layouts.store') @section('title','Not found') @section('content')<div class="container section-space text-center"><p class="display-1">404</p><h1>Page not found</h1><p class="text-secondary">The page or product you requested is no longer available.</p><a class="btn btn-dark mt-3" href="{{ route('products.index') }}">Browse collection</a></div>@endsection
