@@ -1,1 +1,33 @@
-@extends('layouts.store') @section('title',$category?->name ?? 'Shop Tennis') @section('content')<section class="page-head"><div class="container"><p class="eyebrow text-green">WINNER catalogue</p><h1>{{ $category?->name ?? 'Shop tennis' }}</h1><p>{{ $category?->description ?? 'Equipment selected for training, competition and club play.' }}</p></div></section><div class="container section pt-0"><form id="shop-search" class="shop-search" method="GET"><label for="search">Search {{ $category?->name ?? 'the shop' }}</label><div class="input-group"><input id="search" class="form-control" name="search" value="{{ request('search') }}" placeholder="Search by product, brand or description"><input type="hidden" name="brand" value="{{ request('brand') }}"><input type="hidden" name="sort" value="{{ request('sort') }}"><button class="btn btn-dark">Search</button></div></form><form class="simple-filters" method="GET"><input type="hidden" name="search" value="{{ request('search') }}">@if($brands->isNotEmpty())<div><label>Brand</label><select class="form-select" name="brand"><option value="">All brands</option>@foreach($brands as $brand)<option value="{{ $brand }}" @selected(request('brand')===$brand)>{{ $brand }}</option>@endforeach</select></div>@endif<div><label>Sort</label><select class="form-select" name="sort"><option value="">Recommended</option><option value="price_asc" @selected(request('sort')==='price_asc')>Price: Low to High</option><option value="price_desc" @selected(request('sort')==='price_desc')>Price: High to Low</option></select></div><button class="btn btn-dark">Apply</button></form><div class="results-row"><span>{{ $products->total() }} products</span>@if(request()->query())<a href="{{ $category ? route('shop.category',$category) : route('products.index') }}">Clear filters</a>@endif</div><div class="row g-4">@forelse($products as $product)<div class="col-6 col-lg-3">@include('partials.product-card')</div>@empty<div class="empty-panel"><h2>No products found</h2><p>Try a broader search or clear the filters.</p></div>@endforelse</div><div class="mt-5">{{ $products->links() }}</div></div>@endsection
+@extends('layouts.store')
+@section('title', $category?->name ?? 'Shop Tennis')
+@section('content')
+<section class="page-head">
+    <div class="container">
+        <p class="eyebrow text-green">WINNER catalogue</p>
+        <h1>{{ $category?->name ?? 'Shop tennis' }}</h1>
+        <p>{{ $category?->description ?? 'Equipment selected for training, competition and club play.' }}</p>
+    </div>
+</section>
+<div class="container section pt-0">
+    <form class="simple-filters" method="GET">
+        <input type="hidden" name="search" value="{{ request('search') }}">
+        @if($brands->isNotEmpty())
+            <div><label>Brand</label><select class="form-select" name="brand"><option value="">All brands</option>@foreach($brands as $brand)<option value="{{ $brand }}" @selected(request('brand') === $brand)>{{ $brand }}</option>@endforeach</select></div>
+        @endif
+        <div><label>Sort</label><select class="form-select" name="sort"><option value="">Recommended</option><option value="price_asc" @selected(request('sort') === 'price_asc')>Price: Low to High</option><option value="price_desc" @selected(request('sort') === 'price_desc')>Price: High to Low</option></select></div>
+        <button class="btn btn-dark">Apply</button>
+    </form>
+    <div class="results-row">
+        <span>{{ $products->total() }} products @if(request('search')) for “{{ request('search') }}” @endif</span>
+        @if(request()->query())<a href="{{ $category ? route('shop.category', $category) : route('products.index') }}">Clear filters</a>@endif
+    </div>
+    <div class="row g-4 product-grid">
+        @forelse($products as $product)
+            <div class="col-6 col-lg-3">@include('partials.product-card')</div>
+        @empty
+            <div class="empty-panel"><h2>No products found</h2><p>Try a broader search or clear the filters.</p></div>
+        @endforelse
+    </div>
+    <div class="mt-5">{{ $products->links() }}</div>
+</div>
+@endsection

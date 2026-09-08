@@ -1,29 +1,6 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+@extends('layouts.store')
+@section('title', 'Account')
+@section('content')
+<section class="page-head account-head"><div class="container"><p class="eyebrow text-green">Your WINNER account</p><h1>Welcome,<br>{{ $user->name }}</h1><p>Keep your details current and follow every order from one place.</p></div></section>
+<section class="section pt-0"><div class="container account-layout"><aside class="account-summary"><span>Account details</span><strong>{{ $user->name }}</strong><a href="mailto:{{ $user->email }}">{{ $user->email }}</a><a class="btn btn-dark" href="{{ route('orders.index') }}">My Orders</a>@if($user->isAdmin())<a class="account-admin-link" href="{{ route('admin.dashboard') }}">Open Admin Panel</a>@endif<form method="POST" action="{{ route('logout') }}">@csrf<button class="account-logout" type="submit">Log out</button></form></aside><div class="account-form"><p class="eyebrow text-green">Profile</p><h2>Update your details</h2>@if(session('status') === 'profile-updated')<div class="alert alert-success">Your profile has been updated.</div>@endif<form method="POST" action="{{ route('profile.update') }}">@csrf @method('PATCH')<div class="mb-3"><label class="form-label" for="account-name">Name</label><input class="form-control" id="account-name" name="name" value="{{ old('name', $user->name) }}" maxlength="255" required autocomplete="name">@error('name')<div class="text-danger small mt-1">{{ $message }}</div>@enderror</div><div class="mb-4"><label class="form-label" for="account-email">Email</label><input class="form-control" id="account-email" type="email" name="email" value="{{ old('email', $user->email) }}" maxlength="255" required autocomplete="email">@error('email')<div class="text-danger small mt-1">{{ $message }}</div>@enderror</div><button class="btn btn-dark" type="submit">Save details</button></form></div></div></section>
+@endsection
