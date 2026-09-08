@@ -10,7 +10,9 @@ class OrderController extends Controller
 {
     public function index(Request $request): View
     {
-        return view('orders.index', ['orders' => $request->user()->orders()->latest()->paginate(10)]);
+        return view('orders.index', [
+            'orders' => $request->user()->orders()->withCount('items')->latest()->paginate(10),
+        ]);
     }
 
     public function show(Request $request, Order $order): View
