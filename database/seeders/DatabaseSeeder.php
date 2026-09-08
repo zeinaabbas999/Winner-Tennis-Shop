@@ -29,9 +29,9 @@ class DatabaseSeeder extends Seeder
             'Tennis Balls' => [['Wilson', 'US Open Extra Duty 3 Ball Can', 399, [], 'products/balls/wilson-us-open.png'], ['Dunlop', 'Australian Open Official 4 Ball Can', 449, [], 'products/balls/dunlop-australian-open.png']],
             'Grips and Overgrips' => [['Wilson', 'Pro Overgrip 3 Pack', 499, [], 'products/overgrips/wilson-pro-overgrip.png'], ['Yonex', 'Super Grap 3 Pack', 525, [], 'products/overgrips/yonex-super-grap.png']],
             'Strings' => [['Wilson', 'Revolve Spin 17 Reel', 2799, [], 'products/strings/wilson-revolve-spin.png'], ['Dunlop', 'Explosive Tour 16 Reel', 2599, [], 'products/strings/dunlop-explosive-tour.png']],
-            'Dampeners' => [['Babolat', 'Custom Damp 2 Pack', 349, []]], 'Wristbands' => [['Wilson', 'Performance Wristband', 399, []]],
-            'Headbands' => [['HEAD', 'Pro Player Headband', 449, []]], 'Towels' => [['WINNER', 'Court Towel', 599, []]],
-            'Water Bottles' => [['WINNER', 'Insulated Court Bottle', 749, []]], 'Racket Accessories' => [['Babolat', 'Racket Protection Tape', 299, []]],
+            'Dampeners' => [['Babolat', 'Custom Damp 2 Pack', 349, [], 'products/accessories/dampeners.png']], 'Wristbands' => [['Adidas', 'Performance Tennis Wristbands', 399, [], 'products/accessories/tennis-wristbands.png']],
+            'Headbands' => [['The North Face', 'Court Terry Headband', 449, [], 'products/accessories/court-headband.png']], 'Towels' => [['Iron Roots', 'Performance Court Towel', 599, [], 'products/accessories/court-towel.png']],
+            'Water Bottles' => [['Playe Pose', 'Insulated Court Bottle', 749, [], 'products/accessories/court-bottle.png']], 'Racket Accessories' => [['Babolat', 'Racket Protection Tape', 299, []]],
             'Training Equipment' => [['HEAD', 'Target Cone Set', 799, []]], 'Tennis Shoes' => [['Babolat', 'Jet Mach 3 All Court', 6499, []]],
             'Apparel' => [['WINNER', 'Club Performance Polo', 1299, []]], 'Other Tennis Accessories' => [['WINNER', 'Court Essentials Kit', 999, []]],
         ];
