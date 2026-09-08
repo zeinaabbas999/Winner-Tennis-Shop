@@ -31,7 +31,7 @@ class CartController extends Controller
         $cart[$product->id] = $quantity;
         $request->session()->put('cart', $cart);
 
-        return back()->with('success', 'Added to your bag.');
+        return back()->with('success', 'Added to your cart.');
     }
 
     public function update(Request $request, Product $product): RedirectResponse
@@ -44,7 +44,7 @@ class CartController extends Controller
         $cart[$product->id] = $data['quantity'];
         $request->session()->put('cart', $cart);
 
-        return back()->with('success', 'Bag updated.');
+        return back()->with('success', 'Cart updated.');
     }
 
     public function destroy(Request $request, Product $product): RedirectResponse
@@ -60,13 +60,13 @@ class CartController extends Controller
     {
         $request->session()->forget('cart');
 
-        return back()->with('success', 'Bag cleared.');
+        return back()->with('success', 'Cart cleared.');
     }
 
     private function resolvedCart(Request $request)
     {
         $stored = $request->session()->get('cart', []);
-        $products = Product::with('category')->whereIn('id', array_keys($stored))->get()->keyBy('id');
+        $products = Product::with('category')->where('is_active', true)->whereIn('id', array_keys($stored))->get()->keyBy('id');
         $clean = [];
         foreach ($stored as $id => $quantity) {
             if ($products->has($id)) {

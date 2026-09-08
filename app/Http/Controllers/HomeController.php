@@ -12,6 +12,7 @@ class HomeController extends Controller
     {
         return view('home', [
             'newArrivals' => Product::with('category')->where('is_active', true)->latest()->limit(8)->get(),
+            'rackets' => Product::with('category')->where('is_active', true)->whereHas('category', fn ($query) => $query->where('slug', 'tennis-rackets'))->limit(4)->get(),
             'categories' => Category::whereHas('products', fn ($query) => $query->where('is_active', true))
                 ->withCount(['products' => fn ($query) => $query->where('is_active', true)])
                 ->limit(6)

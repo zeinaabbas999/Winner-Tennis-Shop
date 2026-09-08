@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Account · {{ config('app.name', 'Maison') }}</title>
+        <title>Account | WINNER</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0" style="background:#f7f5f0">
             <div>
                 <a href="/">
-                    <span style="font:700 1.5rem Georgia,serif;letter-spacing:.18em;color:#151515">MAISON</span>
+                    <span style="font:800 1.5rem Arial,sans-serif;letter-spacing:.1em;color:#15291f">WINNER.</span>
                 </a>
             </div>
 

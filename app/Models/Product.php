@@ -8,9 +8,11 @@ class Product extends Model
 {
     protected $fillable = [
         'category_id',
+        'brand',
         'name',
         'slug',
         'description',
+        'specs',
         'price',
         'stock',
         'image',
@@ -19,7 +21,7 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'stock' => 'integer', 'is_active' => 'boolean'];
+        return ['price' => 'decimal:2', 'stock' => 'integer', 'is_active' => 'boolean', 'specs' => 'array'];
     }
 
     public function getRouteKeyName(): string

@@ -13,24 +13,41 @@ use Throwable;
 
 class CheckoutController extends Controller
 {
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
-        abort_if(empty(session('cart', [])), 404, 'Your bag is empty.');
+        $stored = session('cart', []);
+        if ($stored === []) {
+            return to_route('cart.index')->with('warning', 'Your cart is empty.');
+        }
 
-        return view('checkout.create');
+        $products = Product::whereIn('id', array_keys($stored))->where('is_active', true)->get()->keyBy('id');
+        $clean = [];
+        foreach ($stored as $id => $quantity) {
+            if ($products->has($id) && $products[$id]->stock > 0) {
+                $clean[$id] = min((int) $quantity, $products[$id]->stock);
+            }
+        }
+        session(['cart' => $clean]);
+        if ($clean === []) {
+            return to_route('cart.index')->with('warning', 'Your cart no longer contains available products.');
+        }
+
+        $cart = collect($clean)->map(fn ($quantity, $id) => ['product' => $products[$id], 'quantity' => $quantity]);
+
+        return view('checkout.create', ['cart' => $cart, 'subtotal' => $cart->sum(fn ($item) => $item['product']->price * $item['quantity'])]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
     {
         $cart = $request->session()->get('cart', []);
         if ($cart === []) {
-            return to_route('cart.index')->with('warning', 'Your bag is empty.');
+            return to_route('cart.index')->with('warning', 'Your cart is empty.');
         }
         try {
             $order = DB::transaction(function () use ($request, $cart) {
                 $products = Product::whereIn('id', array_keys($cart))->lockForUpdate()->get()->keyBy('id');
                 if ($products->count() !== count($cart)) {
-                    throw ValidationException::withMessages(['cart' => 'A product in your bag is no longer available.']);
+                    throw ValidationException::withMessages(['cart' => 'A product in your cart is no longer available.']);
                 }
                 $subtotal = '0.00';
                 foreach ($cart as $id => $quantity) {

@@ -13,8 +13,12 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/shop', [ProductController::class, 'index'])->name('products.index');
+Route::get('/shop/{category}', [ProductController::class, 'category'])->name('shop.category');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::view('/racket-guide', 'pages.racket-guide')->name('racket-guide');
+Route::view('/services', 'pages.services')->name('services');
+Route::view('/contact', 'pages.contact')->name('contact');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{product}', [CartController::class, 'store'])->name('cart.store');
 Route::patch('/cart/{product}', [CartController::class, 'update'])->name('cart.update');

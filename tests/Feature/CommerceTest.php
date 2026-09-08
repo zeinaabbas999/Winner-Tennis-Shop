@@ -33,7 +33,7 @@ class CommerceTest extends TestCase
     {
         $active = $this->product();
         $inactive = Product::create(['category_id' => $active->category_id, 'name' => 'Hidden', 'slug' => 'hidden', 'price' => 10, 'stock' => 1, 'is_active' => false]);
-        $this->get('/products')->assertSee($active->name)->assertDontSee($inactive->name);
+        $this->get(route('products.index'))->assertSee($active->name)->assertDontSee($inactive->name);
         $this->get(route('products.show', $inactive))->assertNotFound();
     }
 
@@ -90,5 +90,34 @@ class CommerceTest extends TestCase
         }
         $this->assertDatabaseHas('products', ['slug' => 'classic-coat']);
         $this->assertDatabaseHas('products', ['slug' => 'classic-coat-2']);
+    }
+
+    public function test_category_page_only_displays_products_from_that_category(): void
+    {
+        $rackets = $this->category();
+        $balls = Category::create(['name' => 'Balls', 'slug' => 'balls']);
+        Product::create(['category_id' => $rackets->id, 'brand' => 'Wilson', 'name' => 'Blade', 'slug' => 'blade', 'price' => 200, 'stock' => 2, 'is_active' => true]);
+        Product::create(['category_id' => $balls->id, 'brand' => 'Dunlop', 'name' => 'Fort Ball', 'slug' => 'fort-ball', 'price' => 20, 'stock' => 2, 'is_active' => true]);
+
+        $this->get(route('shop.category', $rackets))->assertOk()->assertSee('Blade')->assertDontSee('Fort Ball');
+    }
+
+    public function test_search_matches_brand_and_brand_filter_is_restricted(): void
+    {
+        $this->product(['brand' => 'Wilson']);
+        $this->get(route('products.index', ['search' => 'Wilson']))->assertOk()->assertSee('Silk Dress');
+        $this->get(route('products.index', ['brand' => 'Tecnifibre']))->assertSessionHasErrors('brand');
+    }
+
+    public function test_checkout_page_displays_server_calculated_summary(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->product(['price' => 250, 'stock' => 5]);
+
+        $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])
+            ->get(route('checkout.create'))
+            ->assertOk()
+            ->assertSee('500.00 EGP')
+            ->assertSee($product->name);
     }
 }

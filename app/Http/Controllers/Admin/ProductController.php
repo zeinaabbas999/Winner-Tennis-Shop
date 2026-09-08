@@ -44,7 +44,8 @@ class ProductController extends Controller
         $data = $this->data($request, $product);
         if ($request->hasFile('image') && $product->image) {
             Storage::disk('public')->delete($product->image);
-        } $product->update($data);
+        }
+        $product->update($data);
 
         return to_route('admin.products.index')->with('success', 'Product updated.');
     }
@@ -53,9 +54,11 @@ class ProductController extends Controller
     {
         if ($product->orderItems()->exists()) {
             return back()->with('warning', 'Ordered products cannot be deleted; make this product inactive instead.');
-        } if ($product->image) {
+        }
+        if ($product->image) {
             Storage::disk('public')->delete($product->image);
-        } $product->delete();
+        }
+        $product->delete();
 
         return back()->with('success', 'Product deleted.');
     }
@@ -63,6 +66,10 @@ class ProductController extends Controller
     private function data(SaveProductRequest $request, ?Product $product = null): array
     {
         $data = $request->safe()->except('image');
+        if (isset($data['specs'])) {
+            $data['specs'] = array_filter($data['specs'], fn ($value) => filled($value));
+            $data['specs'] = $data['specs'] ?: null;
+        }
         $data['is_active'] = $request->boolean('is_active');
         $base = Str::slug($data['name']) ?: 'product';
         $slug = $base;
@@ -75,6 +82,6 @@ class ProductController extends Controller
             $data['image'] = $request->file('image')->store('products', 'public');
         }
 
-return $data;
+        return $data;
     }
 }
