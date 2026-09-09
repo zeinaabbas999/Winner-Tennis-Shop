@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('content')
-    <x-admin-page-header eyebrow="Catalogue" :title="$product->exists ? 'Edit product' : 'New product'"
+    <x-admin-page-header eyebrow="Catalogue" :title="$product->exists ? 'Edit product' : 'Add product'"
         description="Maintain product details, price, discount, stock and storefront presentation." />
     <form class="admin-product-form" method="POST" enctype="multipart/form-data"
         action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}">

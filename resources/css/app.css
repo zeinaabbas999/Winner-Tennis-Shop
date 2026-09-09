@@ -2818,6 +2818,166 @@ footer {
         grid-column: 2;
     }
 }
+
+/* Unified admin forms and order-detail presentation */
+.admin-category-form {
+    width: 100%;
+    max-width: 760px;
+}
+.admin-category-form .form-label,
+.admin-product-form .form-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+.admin-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+}
+.admin-form-actions .btn {
+    min-width: 132px;
+}
+.admin-order-status {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-xs);
+}
+.admin-order-status .form-select {
+    min-width: 170px;
+    text-transform: capitalize;
+}
+.admin-order-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background: #eceae4;
+}
+.admin-order-meta > div {
+    display: grid;
+    gap: 0.25rem;
+}
+.admin-order-meta small {
+    color: #6f7772;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.admin-order-meta a {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.admin-order-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.6fr);
+    gap: var(--space-lg);
+    align-items: start;
+}
+.admin-order-panel {
+    padding: var(--panel-padding);
+    background: #fff;
+}
+.admin-order-panel h2 {
+    margin: 0 0 var(--space-md);
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+.admin-order-panel h3 {
+    margin: var(--space-lg) 0 var(--space-xs);
+    color: #6f7772;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.admin-order-panel dl {
+    margin: 0;
+}
+.admin-order-panel dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: 0.4rem 0;
+}
+.admin-order-panel dd {
+    margin: 0;
+    font-weight: 700;
+}
+
+/* Structural green accents with dark editorial typography */
+.info-section__heading h2,
+.service-editorial-list h2,
+.customer-page-head h1,
+.product-detail h1,
+.page-head h1,
+.checkout-section h2,
+.order-detail-products h2,
+.order-detail-information h2 {
+    color: var(--ink);
+}
+.guide-info-sections .info-section:not(.info-section--closing) {
+    padding-left: var(--space-lg);
+    border-left: 5px solid var(--green);
+}
+.guide-info-sections .info-section--closing h2 {
+    color: #fff;
+}
+.service-editorial-list {
+    position: relative;
+}
+.service-editorial-list::before {
+    content: "";
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 5px;
+    background: var(--green);
+}
+.contact-editorial__details {
+    border-top: 5px solid var(--green);
+}
+.cart-summary,
+.checkout-section,
+.account-layout .customer-panel,
+.order-card,
+.order-detail-products,
+.order-detail-aside .customer-panel {
+    border-top: 4px solid var(--green);
+}
+
+@media (max-width: 991px) {
+    .admin-order-layout {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 767px) {
+    .admin-order-status {
+        width: 100%;
+    }
+    .admin-order-status .form-select {
+        min-width: 0;
+    }
+    .admin-order-meta {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+    }
+    .admin-order-meta a {
+        width: 100%;
+        margin-left: 0;
+    }
+    .guide-info-sections .info-section:not(.info-section--closing) {
+        padding-left: var(--space-md);
+        border-left-width: 4px;
+    }
+}
 .product-price-display .sale-price {
     color: var(--green);
 }
