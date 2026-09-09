@@ -79,7 +79,20 @@ class CommerceFeaturesTest extends TestCase
 
         $this->assertDatabaseHas('orders', ['total' => 1500]);
         $this->assertDatabaseHas('order_items', ['product_id' => $product->id, 'price' => 750, 'subtotal' => 1500]);
+        $this->get(route('products.index'))->assertSee('25% off');
         $this->get(route('products.show', $product))->assertSee('1,000.00 EGP')->assertSee('750.00 EGP')->assertSee('25% off');
+    }
+
+    public function test_order_details_show_current_product_image_and_payment_method(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->product(['image' => 'products/court-racket.png']);
+        $order = $this->purchase($user, $product);
+
+        $this->actingAs($user)->get(route('orders.show', $order))
+            ->assertOk()
+            ->assertSee('products/court-racket.png')
+            ->assertSee('Cash on delivery');
     }
 
     public function test_guest_cannot_review_and_purchaser_can_review_once(): void

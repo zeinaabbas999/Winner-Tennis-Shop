@@ -143,6 +143,9 @@ class CommerceTest extends TestCase
             ->get(route('checkout.create'))
             ->assertOk()
             ->assertSee('500.00 EGP')
-            ->assertSee($product->name);
+            ->assertSee($product->name)
+            ->assertSee('Payment details')
+            ->assertSee('Cash on Delivery')
+            ->assertSee('Coming soon');
     }
 }

@@ -1,7 +1,16 @@
 <article class="product-card">
     <a href="{{ route('products.show', $product) }}">
         <div class="product-image-frame">
-            @if($product->stock <= 0)<span class="stock-badge">Out of stock</span>@endif
+            @if($product->hasDiscount() || $product->stock <= 0)
+                <div class="product-card-badges" aria-label="Product status">
+                    @if($product->hasDiscount())
+                        <span class="discount-badge">{{ number_format((float) $product->discount_percent) }}% off</span>
+                    @endif
+                    @if($product->stock <= 0)
+                        <span class="stock-badge">Out of stock</span>
+                    @endif
+                </div>
+            @endif
             @if($product->image)
                 <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
                 <div class="image-fallback" hidden>WINNER TENNIS</div>

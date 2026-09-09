@@ -22,7 +22,6 @@
                 ['Racket Selection Advice', 'For players comparing head size, weight, balance and string pattern before purchasing.', 'A practical shortlist based on level, swing and preferred feel.'],
             ] as [$name, $description, $detail])
                 <article>
-                    <span>0{{ $loop->iteration }}</span>
                     <div><h2>{{ $name }}</h2><p>{{ $description }}</p><small>{{ $detail }}</small></div>
                 </article>
             @endforeach
