@@ -15,7 +15,7 @@
             <a class="brand header-brand" href="{{ route('home') }}">WINNER<span>.</span></a>
             <form class="global-search" method="GET" action="{{ route('products.index') }}" role="search">
                 <label class="visually-hidden" for="global-search">Search products</label>
-                <input id="global-search" name="search" value="{{ request('search') }}" placeholder="Search rackets, gear and brands" maxlength="100">
+                <input id="global-search" name="search" value="{{ request('search') }}" placeholder="Search gear" maxlength="100">
                 <button type="submit" aria-label="Submit product search">Search</button>
             </form>
             <div class="header-actions">
@@ -44,6 +44,6 @@
     </aside>
     @include('partials.alerts')
     <main>@yield('content')</main>
-    <footer><div class="container footer-grid"><div><a class="brand" href="{{ route('home') }}">WINNER<span>.</span></a><p class="mt-3 text-secondary">Equipment for better tennis.</p></div><div><strong>Shop</strong><a href="{{ route('shop.category', 'tennis-rackets') }}">Rackets</a><a href="{{ route('shop.category', 'tennis-bags') }}">Tennis Bags</a><a href="{{ route('shop.category', 'other-tennis-accessories') }}">Accessories</a></div><div><strong>Help</strong><a href="{{ route('racket-guide') }}">How to Choose a Racket</a><a href="{{ route('services') }}">Services</a><a href="{{ route('contact') }}">Contact</a></div><div><strong>WINNER</strong><p class="text-secondary">Cairo, Egypt<br><a href="mailto:winner.tennis@gmail.com">winner.tennis@gmail.com</a></p></div></div><div class="container footer-bottom">© {{ date('Y') }} WINNER. Privacy and terms available on request.</div></footer>
+    <footer><div class="container footer-grid"><div><a class="brand" href="{{ route('home') }}">WINNER<span>.</span></a><p class="mt-3 text-secondary">Equipment for better tennis.</p></div><div><strong>Shop</strong><a href="{{ route('shop.category', 'tennis-rackets') }}">Rackets</a><a href="{{ route('shop.category', 'tennis-bags') }}">Tennis Bags</a><a href="{{ route('shop.accessories') }}">Accessories</a></div><div><strong>Help</strong><a href="{{ route('racket-guide') }}">How to Choose a Racket</a><a href="{{ route('services') }}">Services</a><a href="{{ route('contact') }}">Contact</a></div><div><strong>WINNER</strong><p class="text-secondary">Cairo, Egypt<br><a href="mailto:winner.tennis@gmail.com">winner.tennis@gmail.com</a></p></div></div><div class="container footer-bottom">© {{ date('Y') }} WINNER. Privacy and terms available on request.</div></footer>
 </body>
 </html>

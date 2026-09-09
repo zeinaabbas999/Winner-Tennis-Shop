@@ -102,6 +102,31 @@ class CommerceTest extends TestCase
         $this->get(route('shop.category', $rackets))->assertOk()->assertSee('Blade')->assertDontSee('Fort Ball');
     }
 
+    public function test_accessories_catalogue_combines_accessory_categories_only(): void
+    {
+        $dampeners = Category::firstOrCreate(['slug' => 'dampeners'], ['name' => 'Dampeners']);
+        $overgrips = Category::firstOrCreate(['slug' => 'grips-and-overgrips'], ['name' => 'Overgrips']);
+        $other = Category::firstOrCreate(['slug' => 'other-tennis-accessories'], ['name' => 'Other Accessories']);
+        $rackets = Category::firstOrCreate(['slug' => 'tennis-rackets'], ['name' => 'Rackets']);
+
+        foreach ([[$dampeners, 'Custom Damp'], [$overgrips, 'Pro Overgrip'], [$other, 'Court Bottle'], [$rackets, 'Blade Racket']] as [$category, $name]) {
+            Product::create(['category_id' => $category->id, 'name' => $name, 'slug' => str($name)->slug(), 'price' => 100, 'stock' => 2, 'is_active' => true]);
+        }
+
+        $this->get(route('shop.accessories'))
+            ->assertOk()
+            ->assertSee('Custom Damp')
+            ->assertSee('Pro Overgrip')
+            ->assertSee('Court Bottle')
+            ->assertDontSee('Blade Racket');
+
+        $this->get(route('shop.category', $other))
+            ->assertOk()
+            ->assertSee('Court Bottle')
+            ->assertDontSee('Custom Damp')
+            ->assertDontSee('Pro Overgrip');
+    }
+
     public function test_search_matches_brand_and_brand_filter_is_restricted(): void
     {
         $this->product(['brand' => 'Wilson']);

@@ -23,6 +23,16 @@ class ProductController extends Controller
         return $this->catalogue($request, $category);
     }
 
+    public function accessories(Request $request): View
+    {
+        return $this->catalogue(
+            $request,
+            categorySlugs: ['dampeners', 'grips-and-overgrips', 'other-tennis-accessories'],
+            title: 'Accessories',
+            description: 'Dampeners, overgrips and practical court accessories in one collection.',
+        );
+    }
+
     public function show(Product $product): View
     {
         abort_unless($product->is_active, 404);
@@ -30,8 +40,13 @@ class ProductController extends Controller
         return view('products.show', ['product' => $product->load('category')]);
     }
 
-    private function catalogue(Request $request, ?Category $category = null): View
-    {
+    private function catalogue(
+        Request $request,
+        ?Category $category = null,
+        array $categorySlugs = [],
+        ?string $title = null,
+        ?string $description = null,
+    ): View {
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'category' => ['nullable', 'string', 'max:255'],
@@ -41,6 +56,10 @@ class ProductController extends Controller
 
         $query = Product::query()->with('category')->where('is_active', true);
         $query->when($category, fn (Builder $builder) => $builder->whereBelongsTo($category));
+        $query->when($categorySlugs !== [], fn (Builder $builder) => $builder->whereHas(
+            'category',
+            fn (Builder $categoryQuery) => $categoryQuery->whereIn('slug', $categorySlugs),
+        ));
         $query->when(! $category && isset($validated['category']), fn (Builder $builder) => $builder->whereHas('category', fn (Builder $categoryQuery) => $categoryQuery->where('slug', $validated['category'])));
         $query->when($validated['search'] ?? null, fn (Builder $builder, string $term) => $builder->where(fn (Builder $search) => $search
             ->where('name', 'like', "%{$term}%")
@@ -60,6 +79,9 @@ class ProductController extends Controller
             'products' => $query->paginate(12)->withQueryString(),
             'category' => $category,
             'brands' => $showBrandFilter ? collect(self::FILTER_BRANDS) : collect(),
+            'catalogueTitle' => $title ?? $category?->name ?? 'Shop tennis',
+            'catalogueDescription' => $description ?? $category?->description ?? 'Equipment selected for training, competition and club play.',
+            'clearUrl' => $categorySlugs !== [] ? route('shop.accessories') : ($category ? route('shop.category', $category) : route('products.index')),
         ]);
     }
 }

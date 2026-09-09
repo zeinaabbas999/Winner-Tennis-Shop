@@ -1,11 +1,11 @@
 @extends('layouts.store')
-@section('title', $category?->name ?? 'Shop Tennis')
+@section('title', $catalogueTitle)
 @section('content')
 <section class="page-head">
     <div class="container">
         <p class="eyebrow text-green">WINNER catalogue</p>
-        <h1>{{ $category?->name ?? 'Shop tennis' }}</h1>
-        <p>{{ $category?->description ?? 'Equipment selected for training, competition and club play.' }}</p>
+        <h1>{{ $catalogueTitle }}</h1>
+        <p>{{ $catalogueDescription }}</p>
     </div>
 </section>
 <div class="container section pt-0">
@@ -19,7 +19,7 @@
     </form>
     <div class="results-row">
         <span>{{ $products->total() }} products @if(request('search')) for “{{ request('search') }}” @endif</span>
-        @if(request()->query())<a href="{{ $category ? route('shop.category', $category) : route('products.index') }}">Clear filters</a>@endif
+        @if(request()->query())<a href="{{ $clearUrl }}">Clear filters</a>@endif
     </div>
     <div class="row g-4 product-grid">
         @forelse($products as $product)
