@@ -22,19 +22,26 @@ class CheckoutController extends Controller
 
         $products = Product::whereIn('id', array_keys($stored))->where('is_active', true)->get()->keyBy('id');
         $clean = [];
+        $adjusted = false;
         foreach ($stored as $id => $quantity) {
             if ($products->has($id) && $products[$id]->stock > 0) {
                 $clean[$id] = min((int) $quantity, $products[$id]->stock);
+                $adjusted = $adjusted || $clean[$id] !== (int) $quantity;
+            } else {
+                $adjusted = true;
             }
         }
         session(['cart' => $clean]);
         if ($clean === []) {
             return to_route('cart.index')->with('warning', 'Your cart no longer contains available products.');
         }
+        if ($adjusted) {
+            session()->flash('warning', 'Your cart was updated because an item is unavailable or its stock changed.');
+        }
 
         $cart = collect($clean)->map(fn ($quantity, $id) => ['product' => $products[$id], 'quantity' => $quantity]);
 
-        return view('checkout.create', ['cart' => $cart, 'subtotal' => $cart->sum(fn ($item) => $item['product']->price * $item['quantity'])]);
+        return view('checkout.create', ['cart' => $cart, 'subtotal' => $cart->sum(fn ($item) => (float) $item['product']->finalPrice() * $item['quantity'])]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
@@ -55,13 +62,14 @@ class CheckoutController extends Controller
                     if (! $product->is_active || $quantity < 1 || $quantity > $product->stock) {
                         throw ValidationException::withMessages(['cart' => "{$product->name} is unavailable in the requested quantity."]);
                     }
-                    $subtotal = bcadd($subtotal, bcmul((string) $product->price, (string) $quantity, 2), 2);
+                    $subtotal = bcadd($subtotal, bcmul($product->finalPrice(), (string) $quantity, 2), 2);
                 }
                 $order = $request->user()->orders()->create(array_merge($request->validated(), ['order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(str()->random(8)), 'status' => 'pending', 'subtotal' => $subtotal, 'total' => $subtotal]));
                 foreach ($cart as $id => $quantity) {
                     $product = $products[$id];
-                    $line = bcmul((string) $product->price, (string) $quantity, 2);
-                    $order->items()->create(['product_id' => $id, 'product_name' => $product->name, 'price' => $product->price, 'quantity' => $quantity, 'subtotal' => $line]);
+                    $unitPrice = $product->finalPrice();
+                    $line = bcmul($unitPrice, (string) $quantity, 2);
+                    $order->items()->create(['product_id' => $id, 'product_name' => $product->name, 'price' => $unitPrice, 'quantity' => $quantity, 'subtotal' => $line]);
                     $product->decrement('stock', $quantity);
                 }
 

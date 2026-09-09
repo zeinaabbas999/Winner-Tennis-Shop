@@ -1,4 +1,51 @@
-@extends('layouts.admin') @section('content')
-<x-admin-page-header eyebrow="Catalogue" title="Products" description="Manage product information, pricing, stock and storefront visibility."><x-slot:action><a class="btn btn-dark" href="{{ route('admin.products.create') }}">Add product</a></x-slot:action></x-admin-page-header>
-<form class="admin-toolbar" method="GET"><input class="form-control" name="search" value="{{ request('search') }}" placeholder="Search products"><button class="btn btn-dark">Search</button></form>
-<div class="table-responsive"><table class="table align-middle admin-table"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($products as $product)<tr><td><div class="admin-product-cell">@if($product->image)<img src="{{ asset('storage/'.$product->image) }}" alt="">@endif<strong>{{ $product->name }}</strong></div></td><td>{{ $product->category->name }}</td><td>{{ number_format($product->price,2) }} EGP</td><td>{{ $product->stock }}</td><td>{{ $product->is_active?'Active':'Inactive' }}</td><td><div class="admin-actions"><a href="{{ route('admin.products.edit',$product) }}" class="btn admin-action-edit">Edit</a><form method="POST" action="{{ route('admin.products.destroy',$product) }}" onsubmit="return confirm('Delete this product?')">@csrf @method('DELETE')<button class="btn admin-action-delete">Delete</button></form></div></td></tr>@empty<tr><td colspan="6">No products found.</td></tr>@endforelse</tbody></table></div>{{ $products->links() }}@endsection
+@extends('layouts.admin')
+@section('content')
+    <x-admin-page-header eyebrow="Catalogue" title="Products"
+        description="Manage product information, pricing, stock and storefront visibility.">
+        <x-slot:action><a class="btn btn-dark" href="{{ route('admin.products.create') }}">Add product</a></x-slot:action></x-admin-page-header>
+    <form class="admin-toolbar" method="GET"><input class="form-control" name="search" value="{{ request('search') }}"
+            placeholder="Search products"><button class="btn btn-dark">Search</button></form>
+    <div class="table-responsive">
+        <table class="table align-middle admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($products as $product)
+                    <tr>
+                        <td>
+                            <div class="admin-product-cell">
+                                @if ($product->image)
+                                    <img src="{{ asset('storage/' . $product->image) }}" alt="">
+                                @endif
+                                <strong>{{ $product->name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ $product->category->name }}</td>
+                        <td><x-product-price :product="$product" compact /></td>
+                        <td>{{ $product->stock }}</td>
+                        <td>{{ $product->is_active ? 'Active' : 'Inactive' }}</td>
+                        <td>
+                            <div class="admin-actions"><a href="{{ route('admin.products.edit', $product) }}"
+                                    class="btn admin-action-edit">Edit</a>
+                                <form method="POST" action="{{ route('admin.products.destroy', $product) }}"
+                                    onsubmit="return confirm('Delete this product?')">@csrf @method('DELETE')<button
+                                        class="btn admin-action-delete">Delete</button></form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty<tr>
+                        <td colspan="6">No products found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>{{ $products->links() }}
+@endsection

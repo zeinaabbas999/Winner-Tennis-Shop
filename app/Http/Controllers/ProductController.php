@@ -37,7 +37,16 @@ class ProductController extends Controller
     {
         abort_unless($product->is_active, 404);
 
-        return view('products.show', ['product' => $product->load('category')]);
+        $product->load('category')->loadCount('reviews')->loadAvg('reviews', 'rating');
+        $reviews = $product->reviews()->with('user')->latest()->paginate(8);
+        $userReview = request()->user()?->reviews()->whereBelongsTo($product)->first();
+
+        return view('products.show', [
+            'product' => $product,
+            'reviews' => $reviews,
+            'userReview' => $userReview,
+            'canReview' => request()->user()?->hasPurchasedProduct($product) === true,
+        ]);
     }
 
     private function catalogue(
@@ -54,7 +63,7 @@ class ProductController extends Controller
             'sort' => ['nullable', Rule::in(['price_asc', 'price_desc'])],
         ]);
 
-        $query = Product::query()->with('category')->where('is_active', true);
+        $query = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->where('is_active', true);
         $query->when($category, fn (Builder $builder) => $builder->whereBelongsTo($category));
         $query->when($categorySlugs !== [], fn (Builder $builder) => $builder->whereHas(
             'category',
@@ -68,8 +77,8 @@ class ProductController extends Controller
         $query->when($validated['brand'] ?? null, fn (Builder $builder, string $brand) => $builder->where('brand', $brand));
 
         match ($validated['sort'] ?? null) {
-            'price_asc' => $query->orderBy('price'),
-            'price_desc' => $query->orderByDesc('price'),
+            'price_asc' => $query->orderByRaw('price * (100 - discount_percent) / 100'),
+            'price_desc' => $query->orderByRaw('price * (100 - discount_percent) / 100 DESC'),
             default => $query->latest(),
         };
 

@@ -22,6 +22,19 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function hasPurchasedProduct(Product $product): bool
+    {
+        return $this->orders()
+            ->where('status', '!=', 'cancelled')
+            ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
+            ->exists();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

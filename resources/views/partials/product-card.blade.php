@@ -1,6 +1,7 @@
 <article class="product-card">
     <a href="{{ route('products.show', $product) }}">
         <div class="product-image-frame">
+            @if($product->stock <= 0)<span class="stock-badge">Out of stock</span>@endif
             @if($product->image)
                 <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
                 <div class="image-fallback" hidden>WINNER TENNIS</div>
@@ -8,6 +9,6 @@
                 <div class="image-fallback"><span>{{ $product->category->name ?? 'Tennis' }}</span></div>
             @endif
         </div>
-        <div class="product-meta"><small>{{ $product->brand ?: 'WINNER' }}</small><h3>{{ $product->name }}</h3><div><span>{{ $product->category->name }}</span><strong>{{ number_format($product->price, 2) }} EGP</strong></div></div>
+        <div class="product-meta"><small>{{ $product->brand ?: 'WINNER' }}</small><h3>{{ $product->name }}</h3>@if(($product->reviews_count ?? 0) > 0)<p class="product-rating">{{ number_format((float) $product->reviews_avg_rating, 1) }} / 5 · {{ $product->reviews_count }} {{ Str::plural('review', $product->reviews_count) }}</p>@endif<div><span>{{ $product->category->name }}</span><x-product-price :product="$product" compact /></div></div>
     </a>
 </article>

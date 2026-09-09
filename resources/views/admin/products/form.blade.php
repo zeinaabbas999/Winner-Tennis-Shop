@@ -1,1 +1,49 @@
-@extends('layouts.admin') @section('content')<h1>{{ $product->exists?'Edit product':'New product' }}</h1><form class="mt-4" method="POST" enctype="multipart/form-data" action="{{ $product->exists?route('admin.products.update',$product):route('admin.products.store') }}">@csrf @if($product->exists)@method('PUT')@endif<div class="row g-3"><div class="col-md-5"><label class="form-label">Name</label><input class="form-control" name="name" value="{{ old('name',$product->name) }}" required></div><div class="col-md-3"><label class="form-label">Brand</label><input class="form-control" name="brand" value="{{ old('brand',$product->brand) }}"></div><div class="col-md-4"><label class="form-label">Category</label><select class="form-select" name="category_id" required><option value="">Choose category</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category_id',$product->category_id)==$category->id)>{{ $category->name }}</option>@endforeach</select></div><div><label class="form-label">Description</label><textarea class="form-control" rows="4" name="description">{{ old('description',$product->description) }}</textarea></div>@foreach(['weight'=>'Weight','head_size'=>'Head size','balance'=>'Balance','string_pattern'=>'String pattern','skill_level'=>'Skill level','play_style'=>'Playing style'] as $key=>$label)<div class="col-md-4"><label class="form-label">{{ $label }}</label><input class="form-control" name="specs[{{ $key }}]" value="{{ old('specs.'.$key,$product->specs[$key]??'') }}"></div>@endforeach<div class="col-md-4"><label class="form-label">Price (EGP)</label><input class="form-control" type="number" min=".01" step=".01" name="price" value="{{ old('price',$product->price) }}" required></div><div class="col-md-4"><label class="form-label">Stock</label><input class="form-control" type="number" min="0" name="stock" value="{{ old('stock',$product->stock??0) }}" required></div><div class="col-md-4"><label class="form-label">Image</label><input class="form-control" type="file" name="image" accept="image/jpeg,image/png,image/webp"></div><div><div class="form-check"><input type="hidden" name="is_active" value="0"><input class="form-check-input" type="checkbox" name="is_active" value="1" @checked(old('is_active',$product->exists?$product->is_active:true))><label class="form-check-label">Active in storefront</label></div></div><div><button class="btn btn-dark">Save product</button><a class="btn btn-link text-dark" href="{{ route('admin.products.index') }}">Cancel</a></div></div></form>@endsection
+@extends('layouts.admin')
+@section('content')
+    <x-admin-page-header eyebrow="Catalogue" :title="$product->exists ? 'Edit product' : 'New product'"
+        description="Maintain product details, price, discount, stock and storefront presentation." />
+    <form class="admin-product-form" method="POST" enctype="multipart/form-data"
+        action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}">
+        @csrf
+        @if ($product->exists)
+            @method('PUT')
+        @endif
+        <div class="row g-3">
+            <div class="col-md-5"><label class="form-label">Name</label><input class="form-control" name="name"
+                    value="{{ old('name', $product->name) }}" required></div>
+            <div class="col-md-3"><label class="form-label">Brand</label><input class="form-control" name="brand"
+                    value="{{ old('brand', $product->brand) }}"></div>
+            <div class="col-md-4"><label class="form-label">Category</label><select class="form-select" name="category_id"
+                    required>
+                    <option value="">Choose category</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}" @selected(old('category_id', $product->category_id) == $category->id)>{{ $category->name }}</option>
+                    @endforeach
+                </select></div>
+            <div><label class="form-label">Description</label>
+                <textarea class="form-control" rows="4" name="description">{{ old('description', $product->description) }}</textarea>
+            </div>
+            @foreach (['weight' => 'Weight', 'head_size' => 'Head size', 'balance' => 'Balance', 'string_pattern' => 'String pattern', 'skill_level' => 'Skill level', 'play_style' => 'Playing style'] as $key => $label)
+                <div class="col-md-4"><label class="form-label">{{ $label }}</label><input class="form-control"
+                        name="specs[{{ $key }}]" value="{{ old('specs.' . $key, $product->specs[$key] ?? '') }}">
+                </div>
+            @endforeach
+            <div class="col-md-3"><label class="form-label">Price (EGP)</label><input class="form-control" type="number"
+                    min=".01" step=".01" name="price" value="{{ old('price', $product->price) }}" required></div>
+            <div class="col-md-3"><label class="form-label">Discount %</label><input class="form-control" type="number"
+                    min="0" max="100" step=".01" name="discount_percent"
+                    value="{{ old('discount_percent', $product->discount_percent ?? 0) }}"></div>
+            <div class="col-md-3"><label class="form-label">Stock</label><input class="form-control" type="number"
+                    min="0" name="stock" value="{{ old('stock', $product->stock ?? 0) }}" required></div>
+            <div class="col-md-3"><label class="form-label">Image</label><input class="form-control" type="file"
+                    name="image" accept="image/jpeg,image/png,image/webp"></div>
+            <div>
+                <div class="form-check"><input type="hidden" name="is_active" value="0"><input
+                        class="form-check-input" type="checkbox" name="is_active" value="1"
+                        @checked(old('is_active', $product->exists ? $product->is_active : true))><label class="form-check-label">Active in storefront</label></div>
+            </div>
+            <div><button class="btn btn-dark">Save product</button><a class="btn btn-link text-dark"
+                    href="{{ route('admin.products.index') }}">Cancel</a></div>
+        </div>
+    </form>
+@endsection

@@ -52,8 +52,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->orderItems()->exists()) {
-            return back()->with('warning', 'Ordered products cannot be deleted; make this product inactive instead.');
+        if ($product->orderItems()->exists() || $product->reviews()->exists()) {
+            return back()->with('warning', 'Products with order or review history cannot be deleted; make this product inactive instead.');
         }
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -71,6 +71,7 @@ class ProductController extends Controller
             $data['specs'] = $data['specs'] ?: null;
         }
         $data['is_active'] = $request->boolean('is_active');
+        $data['discount_percent'] = $data['discount_percent'] ?? 0;
         $base = Str::slug($data['name']) ?: 'product';
         $slug = $base;
         $i = 2;

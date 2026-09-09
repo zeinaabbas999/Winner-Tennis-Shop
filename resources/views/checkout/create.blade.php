@@ -1,1 +1,19 @@
-@extends('layouts.store') @section('title','Checkout') @section('content')<div class="container section-space"><div class="row g-5"><div class="col-lg-7"><p class="eyebrow text-green">Secure checkout</p><h1 class="display-4 fw-bold mb-4">Delivery details</h1><form method="POST" action="{{ route('checkout.store') }}">@csrf<div class="row g-3"><div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" name="customer_name" value="{{ old('customer_name',auth()->user()->name) }}" required></div><div class="col-md-6"><label class="form-label">Email</label><input class="form-control" type="email" name="customer_email" value="{{ old('customer_email',auth()->user()->email) }}" required></div><div><label class="form-label">Phone Number</label><input class="form-control" name="phone" value="{{ old('phone') }}" required></div><div><label class="form-label">Address</label><textarea class="form-control" rows="5" name="address" required>{{ old('address') }}</textarea></div><div><button class="btn btn-dark w-100">Place order</button></div></div></form></div><aside class="col-lg-5"><div class="checkout-summary"><h2>Order summary</h2>@foreach($cart as $item)<div><span>{{ $item['product']->name }} × {{ $item['quantity'] }}</span><strong>{{ number_format($item['product']->price*$item['quantity'],2) }} EGP</strong><small>{{ number_format($item['product']->price,2) }} EGP each</small></div>@endforeach<footer><span>Total</span><strong>{{ number_format($subtotal,2) }} EGP</strong></footer></div></aside></div></div>@endsection
+@extends('layouts.store')
+@section('title', 'Checkout')
+@section('content')
+<div class="container section-space"><div class="row g-5">
+    <div class="col-lg-7"><p class="eyebrow text-green">Secure checkout</p><h1 class="page-title mb-4">Delivery details</h1>
+        <form method="POST" action="{{ route('checkout.store') }}">@csrf<div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" name="customer_name" value="{{ old('customer_name', auth()->user()->name) }}" required></div>
+            <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" type="email" name="customer_email" value="{{ old('customer_email', auth()->user()->email) }}" required></div>
+            <div><label class="form-label">Phone Number</label><input class="form-control" name="phone" value="{{ old('phone') }}" required></div>
+            <div><label class="form-label">Address</label><textarea class="form-control" rows="5" name="address" required>{{ old('address') }}</textarea></div>
+            <div><button class="btn btn-dark w-100">Place order</button></div>
+        </div></form>
+    </div>
+    <aside class="col-lg-5"><div class="checkout-summary"><h2>Order summary</h2>
+        @foreach($cart as $item)<div><span>{{ $item['product']->name }} × {{ $item['quantity'] }}</span><strong>{{ number_format((float) $item['product']->finalPrice() * $item['quantity'], 2) }} EGP</strong><small>{{ number_format((float) $item['product']->finalPrice(), 2) }} EGP each</small></div>@endforeach
+        <footer><span>Total</span><strong>{{ number_format($subtotal, 2) }} EGP</strong></footer>
+    </div></aside>
+</div></div>
+@endsection

@@ -27,6 +27,7 @@ class SaveProductRequest extends FormRequest
             'specs.skill_level' => ['nullable', 'string', 'max:100'],
             'specs.play_style' => ['nullable', 'string', 'max:100'],
             'price' => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
+            'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'stock' => ['required', 'integer', 'min:0'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'is_active' => ['nullable', 'boolean'],

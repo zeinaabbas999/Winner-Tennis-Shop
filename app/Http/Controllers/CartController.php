@@ -13,7 +13,7 @@ class CartController extends Controller
     {
         $cart = $this->resolvedCart($request);
 
-        return view('cart.index', ['cart' => $cart, 'subtotal' => $cart->sum(fn ($item) => $item['product']->price * $item['quantity'])]);
+        return view('cart.index', ['cart' => $cart, 'subtotal' => $cart->sum(fn ($item) => (float) $item['product']->finalPrice() * $item['quantity'])]);
     }
 
     public function store(Request $request, Product $product): RedirectResponse
@@ -68,13 +68,20 @@ class CartController extends Controller
         $stored = $request->session()->get('cart', []);
         $products = Product::with('category')->where('is_active', true)->whereIn('id', array_keys($stored))->get()->keyBy('id');
         $clean = [];
+        $adjusted = false;
         foreach ($stored as $id => $quantity) {
             if ($products->has($id)) {
                 $clean[$id] = min((int) $quantity, max(0, $products[$id]->stock));
+                $adjusted = $adjusted || $clean[$id] !== (int) $quantity;
+            } else {
+                $adjusted = true;
             }
         }
         $clean = array_filter($clean, fn ($quantity) => $quantity > 0);
         $request->session()->put('cart', $clean);
+        if ($adjusted) {
+            $request->session()->flash('warning', 'Your cart was updated because an item is unavailable or its stock changed.');
+        }
 
         return collect($clean)->map(fn ($quantity, $id) => ['product' => $products[$id], 'quantity' => $quantity]);
     }
