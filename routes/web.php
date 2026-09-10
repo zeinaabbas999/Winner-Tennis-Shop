@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -29,19 +31,22 @@ Route::patch('/cart/{product}', [CartController::class, 'update'])->name('cart.u
 Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart.destroy');
 Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 
-Route::redirect('/dashboard', '/orders')->middleware('auth')->name('dashboard');
+Route::redirect('/dashboard', '/orders')->middleware(['auth', 'customer.verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::patch('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+});
+
+Route::middleware(['auth', 'customer.verified'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::patch('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
-    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });
 
 Route::middleware(['auth', 'admin'])
@@ -57,6 +62,12 @@ Route::middleware(['auth', 'admin'])
         Route::patch('orders/{order}/status', [AdminOrderController::class, 'update'])->name('orders.update');
         Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
         Route::delete('reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        Route::patch('users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
+        Route::get('settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
+        Route::patch('settings', [AdminSettingController::class, 'update'])->name('settings.update');
     });
 
 require __DIR__.'/auth.php';

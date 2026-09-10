@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
+use App\Mail\OrderConfirmed;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
@@ -83,6 +85,15 @@ class CheckoutController extends Controller
             return back()->withInput()->with('error', 'We could not place your order. Please try again.');
         }
         $request->session()->forget('cart');
+
+        try {
+            Mail::to($order->customer_email)->queue(new OrderConfirmed($order->load('items')));
+        } catch (Throwable $e) {
+            Log::warning('Order confirmation email could not be queued.', [
+                'order_id' => $order->id,
+                'exception_type' => $e::class,
+            ]);
+        }
 
         return to_route('orders.show', $order)->with('success', 'Your order has been placed.');
     }

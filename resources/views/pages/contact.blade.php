@@ -20,8 +20,8 @@
                 <p>Include your racket model or the product name when relevant. We will help you find the practical next
                     step.</p>
                 <div class="contact-editorial__actions">
-                    <a class="btn btn-lime" href="mailto:winner.tennis@gmail.com">Email WINNER</a>
-                    <a class="contact-email" href="mailto:winner.tennis@gmail.com">winner.tennis@gmail.com</a>
+                    <a class="btn btn-lime" href="mailto:winner.tennis999@gmail.com">Email WINNER</a>
+                    <a class="contact-email" href="mailto:winner.tennis999@gmail.com">winner.tennis999@gmail.com</a>
                 </div>
             </section>
             <div class="contact-editorial__details">

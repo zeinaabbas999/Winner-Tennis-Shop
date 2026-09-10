@@ -22,7 +22,11 @@
                         class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}"
                         href="{{ route('admin.orders.index') }}">Orders</a><a
                         class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"
-                        href="{{ route('admin.reviews.index') }}">Reviews</a></nav>
+                        href="{{ route('admin.reviews.index') }}">Reviews</a><a
+                        class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+                        href="{{ route('admin.users.index') }}">Users</a><a
+                        class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
+                        href="{{ route('admin.settings.edit') }}">Settings</a></nav>
                 <div class="admin-sidebar-bottom"><a href="{{ route('home') }}">View store</a>
                     <form method="POST" action="{{ route('logout') }}">@csrf<button
                             class="btn btn-sm btn-outline-light">Logout</button></form>

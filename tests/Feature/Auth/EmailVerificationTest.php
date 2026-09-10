@@ -38,7 +38,7 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $response->assertRedirect(route('orders.index', absolute: false).'?verified=1');
     }
 
     public function test_email_is_not_verified_with_invalid_hash(): void
@@ -54,5 +54,13 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get($verificationUrl);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_unverified_customer_is_redirected_from_checkout_and_orders(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user)->get(route('checkout.create'))->assertRedirect(route('verification.notice'));
+        $this->actingAs($user)->get(route('orders.index'))->assertRedirect(route('verification.notice'));
     }
 }

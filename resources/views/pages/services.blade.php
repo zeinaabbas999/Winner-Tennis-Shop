@@ -25,7 +25,8 @@
         </div>
         <div class="container info-contact-note">
             <p class="eyebrow text-green">Arrange a service</p>
-            <p>Email <a href="mailto:winner.tennis@gmail.com">winner.tennis@gmail.com</a> with your racket model and what you
+            <p>Email <a href="mailto:winner.tennis999@gmail.com">winner.tennis999@gmail.com</a> with your racket model and
+                what you
                 need. We will confirm the practical next step.</p>
         </div>
     </div>

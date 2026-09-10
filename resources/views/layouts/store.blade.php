@@ -10,7 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="storefront">
+<body class="storefront {{ request()->routeIs('home') ? 'storefront-home' : 'storefront-inner' }}">
     <header class="store-header sticky-top">
         <div class="container header-inner">
             <button class="menu-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"
@@ -86,7 +86,7 @@
                 href="{{ route('policies') }}">Policies</a></div>
         <div><strong>WINNER</strong>
             <p class="text-secondary">Cairo, Egypt<br><a
-                    href="mailto:winner.tennis@gmail.com">winner.tennis@gmail.com</a></p>
+                    href="mailto:winner.tennis999@gmail.com">winner.tennis999@gmail.com</a></p>
         </div>
     </div>
     <div class="container footer-bottom">© {{ date('Y') }} WINNER. Review our <a

@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderConfirmed;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class CommerceTest extends TestCase
@@ -45,6 +47,7 @@ class CommerceTest extends TestCase
 
     public function test_checkout_creates_order_items_reduces_stock_and_clears_cart(): void
     {
+        Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['price' => 250, 'stock' => 5]);
         $response = $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), ['customer_name' => 'Customer', 'customer_email' => 'buyer@example.com', 'phone' => '01000000000', 'address' => 'Cairo, Egypt']);
@@ -53,14 +56,38 @@ class CommerceTest extends TestCase
         $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'total' => 500]);
         $this->assertDatabaseHas('order_items', ['order_id' => $order->id, 'product_id' => $product->id, 'quantity' => 2, 'subtotal' => 500]);
         $this->assertSame(3, $product->fresh()->stock);
+        Mail::assertQueued(OrderConfirmed::class, fn (OrderConfirmed $mail) => $mail->order->is($order));
     }
 
     public function test_checkout_revalidates_stock_without_partial_order(): void
     {
+        Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['stock' => 1]);
         $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), ['customer_name' => 'Customer', 'customer_email' => 'buyer@example.com', 'phone' => '01000000000', 'address' => 'Cairo'])->assertSessionHasErrors('cart');
         $this->assertDatabaseCount('orders', 0);
+        $this->assertSame(1, $product->fresh()->stock);
+        Mail::assertNothingQueued();
+    }
+
+    public function test_queue_dispatch_failure_does_not_roll_back_a_completed_order(): void
+    {
+        $user = User::factory()->create();
+        $product = $this->product(['price' => 250, 'stock' => 2]);
+        Mail::shouldReceive('to')->once()->andThrow(new \RuntimeException('Mail transport unavailable.'));
+
+        $response = $this->actingAs($user)
+            ->withSession(['cart' => [$product->id => 1]])
+            ->post(route('checkout.store'), [
+                'customer_name' => 'Customer',
+                'customer_email' => 'buyer@example.com',
+                'phone' => '01000000000',
+                'address' => 'Cairo, Egypt',
+            ]);
+
+        $order = Order::firstOrFail();
+        $response->assertRedirect(route('orders.show', $order))->assertSessionMissing('cart');
+        $this->assertDatabaseHas('order_items', ['order_id' => $order->id, 'price' => 250]);
         $this->assertSame(1, $product->fresh()->stock);
     }
 

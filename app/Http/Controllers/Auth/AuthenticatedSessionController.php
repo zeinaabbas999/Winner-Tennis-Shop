@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\VerificationRequirement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, VerificationRequirement $verification): RedirectResponse
     {
         $request->authenticate();
 
@@ -30,6 +31,10 @@ class AuthenticatedSessionController extends Controller
 
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.dashboard');
+        }
+
+        if ($verification->required() && ! auth()->user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
         }
 
         return redirect()->route('orders.index');
