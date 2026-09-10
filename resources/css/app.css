@@ -1211,7 +1211,7 @@ footer {
 }
 .footer-grid a:not(.brand) {
     display: block;
-    color: var(--ink);
+    color: var(--muted);
     text-decoration: none;
     margin: 0.45rem 0;
 }
