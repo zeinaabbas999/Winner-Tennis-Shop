@@ -50,10 +50,11 @@ class CommerceTest extends TestCase
         Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['price' => 250, 'stock' => 5]);
-        $response = $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), ['customer_name' => 'Customer', 'customer_email' => 'buyer@example.com', 'phone' => '01000000000', 'address' => 'Cairo, Egypt']);
+        $response = $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), $this->checkoutDetails());
         $order = Order::firstOrFail();
         $response->assertRedirect(route('orders.show', $order))->assertSessionMissing('cart');
         $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'total' => 500]);
+        $this->assertSame("Governorate: Cairo\nCity / Area: New Cairo\nStreet: Example Street\nBuilding: 12\nFloor / Apartment: 3 / 8\nLandmark: Near the sports club\nDelivery Notes: Call on arrival", str_replace("\r\n", "\n", $order->address));
         $this->assertDatabaseHas('order_items', ['order_id' => $order->id, 'product_id' => $product->id, 'quantity' => 2, 'subtotal' => 500]);
         $this->assertSame(3, $product->fresh()->stock);
         Mail::assertQueued(OrderConfirmed::class, fn (OrderConfirmed $mail) => $mail->order->is($order));
@@ -64,7 +65,7 @@ class CommerceTest extends TestCase
         Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['stock' => 1]);
-        $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), ['customer_name' => 'Customer', 'customer_email' => 'buyer@example.com', 'phone' => '01000000000', 'address' => 'Cairo'])->assertSessionHasErrors('cart');
+        $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), $this->checkoutDetails())->assertSessionHasErrors('cart');
         $this->assertDatabaseCount('orders', 0);
         $this->assertSame(1, $product->fresh()->stock);
         Mail::assertNothingQueued();
@@ -78,12 +79,7 @@ class CommerceTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withSession(['cart' => [$product->id => 1]])
-            ->post(route('checkout.store'), [
-                'customer_name' => 'Customer',
-                'customer_email' => 'buyer@example.com',
-                'phone' => '01000000000',
-                'address' => 'Cairo, Egypt',
-            ]);
+            ->post(route('checkout.store'), $this->checkoutDetails());
 
         $order = Order::firstOrFail();
         $response->assertRedirect(route('orders.show', $order))->assertSessionMissing('cart');
@@ -97,6 +93,22 @@ class CommerceTest extends TestCase
         $other = User::factory()->create();
         $order = $owner->orders()->create(['order_number' => 'ORD-TEST', 'status' => 'pending', 'subtotal' => 10, 'total' => 10, 'customer_name' => 'Owner', 'customer_email' => $owner->email, 'phone' => '1', 'address' => 'Cairo']);
         $this->actingAs($other)->get(route('orders.show', $order))->assertForbidden();
+    }
+
+    private function checkoutDetails(): array
+    {
+        return [
+            'customer_name' => 'Customer',
+            'customer_email' => 'buyer@example.com',
+            'phone' => '01000000000',
+            'governorate' => 'Cairo',
+            'city_area' => 'New Cairo',
+            'street' => 'Example Street',
+            'building_number' => '12',
+            'floor_apartment' => '3 / 8',
+            'landmark' => 'Near the sports club',
+            'delivery_notes' => 'Call on arrival',
+        ];
     }
 
     public function test_category_with_products_cannot_be_deleted(): void
@@ -173,6 +185,11 @@ class CommerceTest extends TestCase
             ->assertSee($product->name)
             ->assertSee('Payment details')
             ->assertSee('Cash on Delivery')
+            ->assertSee('name="governorate"', false)
+            ->assertSee('name="city_area"', false)
+            ->assertSee('name="street"', false)
+            ->assertSee('name="building_number"', false)
+            ->assertDontSee('<legend', false)
             ->assertSee('Coming soon');
     }
 }

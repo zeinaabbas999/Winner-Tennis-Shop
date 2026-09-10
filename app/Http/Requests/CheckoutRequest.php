@@ -17,7 +17,13 @@ class CheckoutRequest extends FormRequest
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
-            'address' => ['required', 'string', 'max:1000'],
+            'governorate' => ['required', 'string', 'max:100'],
+            'city_area' => ['required', 'string', 'max:150'],
+            'street' => ['required', 'string', 'max:255'],
+            'building_number' => ['required', 'string', 'max:50'],
+            'floor_apartment' => ['nullable', 'string', 'max:100'],
+            'landmark' => ['nullable', 'string', 'max:255'],
+            'delivery_notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

@@ -52,8 +52,16 @@ class CheckoutController extends Controller
         if ($cart === []) {
             return to_route('cart.index')->with('warning', 'Your cart is empty.');
         }
+        $validated = $request->validated();
+        $customer = [
+            'customer_name' => $validated['customer_name'],
+            'customer_email' => $validated['customer_email'],
+            'phone' => $validated['phone'],
+            'address' => $this->formatDeliveryAddress($validated),
+        ];
+
         try {
-            $order = DB::transaction(function () use ($request, $cart) {
+            $order = DB::transaction(function () use ($request, $cart, $customer) {
                 $products = Product::whereIn('id', array_keys($cart))->lockForUpdate()->get()->keyBy('id');
                 if ($products->count() !== count($cart)) {
                     throw ValidationException::withMessages(['cart' => 'A product in your cart is no longer available.']);
@@ -66,7 +74,7 @@ class CheckoutController extends Controller
                     }
                     $subtotal = bcadd($subtotal, bcmul($product->finalPrice(), (string) $quantity, 2), 2);
                 }
-                $order = $request->user()->orders()->create(array_merge($request->validated(), ['order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(str()->random(8)), 'status' => 'pending', 'subtotal' => $subtotal, 'total' => $subtotal]));
+                $order = $request->user()->orders()->create(array_merge($customer, ['order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(str()->random(8)), 'status' => 'pending', 'subtotal' => $subtotal, 'total' => $subtotal]));
                 foreach ($cart as $id => $quantity) {
                     $product = $products[$id];
                     $unitPrice = $product->finalPrice();
@@ -96,5 +104,23 @@ class CheckoutController extends Controller
         }
 
         return to_route('orders.show', $order)->with('success', 'Your order has been placed.');
+    }
+
+    private function formatDeliveryAddress(array $validated): string
+    {
+        $parts = [
+            'Governorate' => $validated['governorate'],
+            'City / Area' => $validated['city_area'],
+            'Street' => $validated['street'],
+            'Building' => $validated['building_number'],
+            'Floor / Apartment' => $validated['floor_apartment'] ?? null,
+            'Landmark' => $validated['landmark'] ?? null,
+            'Delivery Notes' => $validated['delivery_notes'] ?? null,
+        ];
+
+        return collect($parts)
+            ->filter(fn (?string $value): bool => filled($value))
+            ->map(fn (string $value, string $label): string => $label.': '.trim($value))
+            ->implode(PHP_EOL);
     }
 }

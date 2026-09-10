@@ -74,7 +74,10 @@ class CommerceFeaturesTest extends TestCase
             'customer_name' => $user->name,
             'customer_email' => $user->email,
             'phone' => '01000000000',
-            'address' => 'Cairo',
+            'governorate' => 'Cairo',
+            'city_area' => 'Nasr City',
+            'street' => 'Makram Ebeid Street',
+            'building_number' => '10',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('orders', ['total' => 1500]);

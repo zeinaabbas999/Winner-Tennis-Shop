@@ -52,7 +52,7 @@
                     <section class="customer-panel order-detail-information">
                         <h2>Shipping information</h2>
                         <p>{{ $order->customer_name }}<br>{{ $order->customer_email }}<br>{{ $order->phone }}</p>
-                        <p class="text-break">{{ $order->address }}</p>
+                        <p class="text-break formatted-address">{{ $order->address }}</p>
                         <h3>Payment details</h3>
                         <p>Cash on delivery</p>
                     </section>

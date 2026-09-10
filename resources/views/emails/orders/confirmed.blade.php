@@ -63,7 +63,8 @@
                     <tr>
                         <td style="padding:24px 32px;background:#ecefe8;">
                             <h2 style="margin:0 0 10px;font-size:18px;">Delivery information</h2>
-                            <p style="margin:0;color:#59615c;line-height:1.6;">{{ $order->address }}<br>{{ $order->phone }}</p>
+                            <p style="margin:0;color:#59615c;line-height:1.6;white-space:pre-line;">{{ $order->address }}</p>
+                            <p style="margin:8px 0 0;color:#59615c;line-height:1.6;">{{ $order->phone }}</p>
                             <p style="margin:14px 0 0;color:#59615c;">Current status: <strong>{{ ucfirst($order->status) }}</strong></p>
                         </td>
                     </tr>

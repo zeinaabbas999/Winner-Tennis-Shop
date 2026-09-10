@@ -23,16 +23,45 @@
                     <section class="customer-panel checkout-section" aria-labelledby="delivery-details">
                         <p class="checkout-step">Delivery</p>
                         <h2 id="delivery-details">Delivery details</h2>
-                        <label class="form-label" for="address">Address</label>
-                        <textarea id="address" class="form-control" rows="5" name="address" required>{{ old('address') }}</textarea>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="governorate">Governorate</label>
+                                <input id="governorate" class="form-control" name="governorate" value="{{ old('governorate') }}" autocomplete="address-level1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="city_area">City / Area</label>
+                                <input id="city_area" class="form-control" name="city_area" value="{{ old('city_area') }}" autocomplete="address-level2" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label" for="street">Street name</label>
+                                <input id="street" class="form-control" name="street" value="{{ old('street') }}" autocomplete="street-address" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="building_number">Building number</label>
+                                <input id="building_number" class="form-control" name="building_number" value="{{ old('building_number') }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="floor_apartment">Floor / Apartment <span class="optional-label">Optional</span></label>
+                                <input id="floor_apartment" class="form-control" name="floor_apartment" value="{{ old('floor_apartment') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="landmark">Landmark <span class="optional-label">Optional</span></label>
+                                <input id="landmark" class="form-control" name="landmark" value="{{ old('landmark') }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="delivery_notes">Delivery notes <span class="optional-label">Optional</span></label>
+                                <textarea id="delivery_notes" class="form-control" rows="3" name="delivery_notes">{{ old('delivery_notes') }}</textarea>
+                            </div>
+                        </div>
                         <p class="checkout-supporting">Delivery timing and any applicable costs are confirmed with your order.</p>
                     </section>
-                    <fieldset class="customer-panel checkout-section checkout-payment">
-                        <legend><span class="checkout-step">Payment</span>Payment details</legend>
+                    <section class="customer-panel checkout-section checkout-payment" aria-labelledby="payment-details">
+                        <p class="checkout-step">Payment</p>
+                        <h2 id="payment-details">Payment details</h2>
                         <p>Cash on Delivery is the currently supported payment method.</p>
-                        <label class="payment-option"><input type="radio" checked disabled><span><strong>Cash on Delivery</strong><small>Pay when your WINNER order arrives.</small></span></label>
+                        <div class="payment-option" role="status"><span class="payment-option__mark" aria-hidden="true"></span><span><strong>Cash on Delivery</strong><small>Pay when your WINNER order arrives.</small></span></div>
                         <div class="payment-future"><strong>Future payment methods · Coming soon</strong><span>Card via Paymob and mobile wallet options can be added here when a secure gateway is connected.</span></div>
-                    </fieldset>
+                    </section>
                     <button class="btn btn-dark w-100" type="submit">Place order</button>
                 </form>
                 <aside>

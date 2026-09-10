@@ -1048,39 +1048,51 @@ body.storefront {
 }
 .cart-row {
     display: grid;
-    grid-template-columns: 110px 1fr 250px 140px auto;
+    grid-template-columns: 104px minmax(180px, 1fr) 250px 140px auto;
     gap: var(--space-md);
     align-items: center;
     padding: var(--space-md);
     margin-bottom: var(--space-sm);
     background: rgba(255, 255, 255, 0.55);
 }
-.cart-row img,
+.cart-media {
+    width: 104px;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #f2f1eb;
+}
+.cart-media img,
 .cart-placeholder {
-    width: 110px;
-    height: 130px;
+    width: 100%;
+    height: 100%;
+}
+.cart-media img {
+    display: block;
     object-fit: contain;
-    background: #e5e8df;
 }
 .cart-placeholder {
     display: grid;
     place-items: center;
     font-weight: 900;
     color: var(--green);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
 }
-.cart-row > div:nth-child(2) {
+.cart-product-copy {
     display: flex;
     flex-direction: column;
+    align-self: center;
 }
-.cart-row > div:nth-child(2) small {
+.cart-product-copy small {
     color: var(--accent);
     font-weight: 800;
 }
-.cart-row > div:nth-child(2) a {
+.cart-product-copy a {
     font-weight: 800;
     color: var(--ink);
 }
-.cart-row > div:nth-child(2) span {
+.cart-product-copy span {
     font-size: 0.8rem;
     color: var(--muted);
 }
@@ -1518,10 +1530,8 @@ footer {
         gap: 1rem;
         padding: 1rem;
     }
-    .cart-row img,
-    .cart-placeholder {
+    .cart-media {
         width: 80px;
-        height: 100px;
     }
     .cart-row > form,
     .cart-row > strong,
@@ -2685,7 +2695,6 @@ footer {
     gap: var(--space-md);
 }
 .checkout-section h2,
-.checkout-section legend,
 .order-detail-products > h2,
 .order-detail-aside h2 {
     margin: 0 0 var(--space-md);
@@ -2693,15 +2702,8 @@ footer {
     font-size: var(--panel-title-size);
     font-weight: 800;
 }
-.checkout-payment {
-    border: 0;
-}
-.checkout-payment legend {
-    float: none;
-    width: auto;
-}
-.checkout-payment > p {
-    margin: calc(-1 * var(--space-sm)) 0 var(--space-md);
+.checkout-payment > p:not(.checkout-step) {
+    margin: 0 0 var(--space-md);
     color: var(--muted);
 }
 .payment-option {
@@ -2714,9 +2716,13 @@ footer {
 .payment-option + .payment-option {
     border-top: 1px solid rgba(24, 55, 39, 0.14);
 }
-.payment-option input {
-    margin-top: 0.3rem;
-    accent-color: var(--green);
+.payment-option__mark {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.25rem;
+    border: 4px solid var(--green);
+    border-radius: 50%;
 }
 .payment-option span {
     display: grid;
@@ -3116,12 +3122,13 @@ footer {
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
-.checkout-payment legend {
-    display: grid;
-    gap: var(--space-xs);
+.optional-label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 500;
 }
-.checkout-payment legend .checkout-step {
-    font-size: var(--eyebrow-size);
+.formatted-address {
+    white-space: pre-line;
 }
 .checkout-supporting {
     margin: var(--space-sm) 0 0;

@@ -43,7 +43,7 @@
             <h2>Customer information</h2>
             <p>{{ $order->customer_name }}<br>{{ $order->customer_email }}<br>{{ $order->phone }}</p>
             <h3>Delivery address</h3>
-            <p>{{ $order->address }}</p>
+            <p class="formatted-address">{{ $order->address }}</p>
             <h3>Payment summary</h3>
             <dl>
                 <div><dt>Subtotal</dt><dd>{{ number_format($order->subtotal, 2) }} EGP</dd></div>
