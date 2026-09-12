@@ -31,6 +31,9 @@
             </div>
         </div>
     </section>
+    @if($featuredProducts->isNotEmpty())
+        <section class="section section-white"><div class="container"><div class="section-heading"><div><p class="eyebrow text-green">WINNER selection</p><h2>Featured products</h2></div></div><div class="row g-4 product-grid">@foreach($featuredProducts as $product)<div class="col-6 col-lg-3">@include('partials.product-card')</div>@endforeach</div></div></section>
+    @endif
     <section class="play-styles">
         <div class="container play-styles-inner">
             <div class="section-heading">

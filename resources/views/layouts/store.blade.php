@@ -5,7 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="WINNER premium tennis equipment in Egypt">
+    <meta name="description" content="@yield('meta_description', 'WINNER premium tennis equipment in Egypt')">
+    <meta name="robots" content="{{ request()->routeIs('cart.*', 'checkout.*', 'orders.*', 'guest.orders.*', 'wishlist.*', 'profile.*', 'verification.*') ? 'noindex,nofollow' : 'index,follow' }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:site_name" content="WINNER">
+    <meta property="og:title" content="@yield('title', 'Tennis Equipment') | WINNER">
+    <meta property="og:description" content="@yield('meta_description', 'WINNER premium tennis equipment in Egypt')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
     <title>@yield('title', 'Tennis Equipment') | WINNER</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -24,7 +31,7 @@
             </form>
             <div class="header-actions">
             @guest<a class="header-link account-link" href="{{ route('login') }}">Log in / Sign up</a>@else<a
-                class="header-link account-link" href="{{ route('profile.edit') }}">Account</a>@endguest
+                class="header-link account-link" href="{{ route('profile.edit') }}">Account</a><a class="header-link" href="{{ route('wishlist.index') }}">Wishlist</a>@endguest
             <a class="header-link cart-link" href="{{ route('cart.index') }}">Cart <span
                     class="cart-count">{{ array_sum(session('cart', [])) }}</span></a>
         </div>
@@ -83,7 +90,10 @@
                 href="{{ route('shop.accessories') }}">Accessories</a></div>
         <div><strong>Help</strong><a href="{{ route('racket-guide') }}">How to Choose a Racket</a><a
                 href="{{ route('services') }}">Services</a><a href="{{ route('contact') }}">Contact</a><a
-                href="{{ route('policies') }}">Policies</a></div>
+                href="{{ route('policies') }}">Shipping and Returns</a></div>
+        <div><strong>Legal</strong><a href="{{ route('privacy') }}">Privacy Policy</a><a
+                href="{{ route('terms') }}">Terms and Conditions</a><a href="{{ route('cookies') }}">Cookie Policy</a><button
+                class="footer-cookie-settings" type="button" data-cookie-settings>Cookie settings</button></div>
         <div><strong>WINNER</strong>
             <p class="text-secondary">Cairo, Egypt<br><a
                     href="mailto:winner.tennis999@gmail.com">winner.tennis999@gmail.com</a></p>
@@ -92,6 +102,7 @@
     <div class="container footer-bottom">© {{ date('Y') }} WINNER. Review our <a
             href="{{ route('policies') }}">shipping, returns and exchange policies</a>.</div>
 </footer>
+@include('partials.cookie-consent')
 </body>
 
 </html>

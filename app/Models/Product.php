@@ -18,11 +18,12 @@ class Product extends Model
         'stock',
         'image',
         'is_active',
+        'is_featured',
     ];
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'discount_percent' => 'decimal:2', 'stock' => 'integer', 'is_active' => 'boolean', 'specs' => 'array'];
+        return ['price' => 'decimal:2', 'discount_percent' => 'decimal:2', 'stock' => 'integer', 'is_active' => 'boolean', 'is_featured' => 'boolean', 'specs' => 'array'];
     }
 
     public function getRouteKeyName(): string
@@ -43,6 +44,50 @@ class Product extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function wishlistUsers()
+    {
+        return $this->belongsToMany(User::class, 'wishlists')->withTimestamps();
+    }
+
+    public function inventoryAdjustments()
+    {
+        return $this->hasMany(InventoryAdjustment::class);
+    }
+
+    public function imageUrl(): ?string
+    {
+        return $this->image ? asset('storage/'.ltrim($this->image, '/')) : null;
+    }
+
+    public function badges(int $lowStockThreshold = 5): array
+    {
+        $stock = $this->effectiveStock();
+
+        return array_values(array_filter([
+            $this->hasDiscount() ? number_format((float) $this->discount_percent).'% off' : null,
+            $stock > 0 && $stock <= $lowStockThreshold ? 'Limited stock' : null,
+            $this->created_at?->isAfter(now()->subDays(30)) ? 'New' : null,
+            ($this->sales_quantity ?? 0) >= 5 ? 'Best seller' : null,
+        ]));
+    }
+
+    public function effectiveStock(): int
+    {
+        if (array_key_exists('variants_stock', $this->attributes) && $this->variants_stock !== null) {
+            return (int) $this->variants_stock;
+        }
+        if ($this->relationLoaded('variants') && $this->variants->isNotEmpty()) {
+            return (int) $this->variants->where('is_active', true)->sum('stock');
+        }
+
+        return $this->stock;
     }
 
     public function hasDiscount(): bool

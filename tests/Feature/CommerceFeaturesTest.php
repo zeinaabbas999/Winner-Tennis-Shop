@@ -70,7 +70,8 @@ class CommerceFeaturesTest extends TestCase
         $user = User::factory()->create();
         $product = $this->product(['discount_percent' => 25]);
 
-        $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), [
+        $this->actingAs($user)->withSession(['cart' => [$product->id => 2], 'checkout_tokens' => ['18362427-4f5b-46ac-b81c-fce80da63cef']])->post(route('checkout.store'), [
+            'checkout_token' => '18362427-4f5b-46ac-b81c-fce80da63cef',
             'customer_name' => $user->name,
             'customer_email' => $user->email,
             'phone' => '01000000000',

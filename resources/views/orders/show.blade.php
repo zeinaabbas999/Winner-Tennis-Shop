@@ -15,6 +15,11 @@
                     <time datetime="{{ $order->created_at->toDateString() }}">{{ $order->created_at->format('d M Y') }}</time>
                 </div>
             </header>
+            @php($stages = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']) @php($timelineStatus = $order->status === 'completed' ? 'delivered' : $order->status)
+            <ol class="order-timeline" aria-label="Order progress">
+                @foreach($stages as $stage)<li class="{{ array_search($stage, $stages, true) <= array_search($timelineStatus, $stages, true) && $order->status !== 'cancelled' ? 'complete' : '' }}"><span></span>{{ ucfirst($stage) }}</li>@endforeach
+                @if($order->status === 'cancelled')<li class="cancelled"><span></span>Cancelled</li>@endif
+            </ol>
 
             <div class="order-detail-layout">
                 <section class="customer-panel order-detail-products" aria-labelledby="ordered-products">
@@ -23,8 +28,8 @@
                         @foreach($order->items as $item)
                             <article class="order-product-row">
                                 <div class="order-product-media">
-                                    @if($item->product?->image)
-                                        <img src="{{ asset('storage/'.$item->product->image) }}" alt="{{ $item->product_name }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+                                    @if($item->product?->imageUrl())
+                                        <img src="{{ $item->product->imageUrl() }}" alt="{{ $item->product_name }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
                                         <div class="order-product-fallback" hidden>WINNER</div>
                                     @else
                                         <div class="order-product-fallback">WINNER</div>
@@ -45,7 +50,8 @@
                         <h2>Order summary</h2>
                         <dl>
                             <div><dt>Subtotal</dt><dd>{{ number_format((float) $order->subtotal, 2) }} EGP</dd></div>
-                            <div><dt>Delivery</dt><dd>Included</dd></div>
+                            @if((float)$order->coupon_discount>0)<div><dt>Coupon {{ $order->coupon_code }}</dt><dd>-{{ number_format((float)$order->coupon_discount,2) }} EGP</dd></div>@endif
+                            <div><dt>Shipping</dt><dd>{{ number_format((float)$order->shipping_fee,2) }} EGP</dd></div>
                             <div class="order-detail-total"><dt>Total</dt><dd>{{ number_format((float) $order->total, 2) }} EGP</dd></div>
                         </dl>
                     </section>
@@ -58,6 +64,7 @@
                     </section>
                 </aside>
             </div>
+            @auth @if($order->user_id===auth()->id() && $order->canRequestCancellation())<section class="customer-panel mt-4"><h2>Request cancellation</h2><p>Requests are reviewed before an order is cancelled.</p><form method="POST" action="{{ route('orders.cancellation.store', $order) }}">@csrf<label class="form-label" for="reason">Reason</label><textarea class="form-control mb-3" id="reason" name="reason" rows="3" maxlength="1000" required></textarea><button class="btn btn-outline-dark">Send request</button></form></section>@elseif($order->cancellation_status)<p class="mt-4">Cancellation request: <strong>{{ ucfirst($order->cancellation_status) }}</strong></p>@endif @endauth
         </div>
     </section>
 @endsection

@@ -1,9 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
     <title>Admin | WINNER</title>@vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -21,6 +22,10 @@
                         href="{{ route('admin.categories.index') }}">Categories</a><a
                         class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}"
                         href="{{ route('admin.orders.index') }}">Orders</a><a
+                        class="{{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}"
+                        href="{{ route('admin.inventory.index') }}">Inventory</a><a
+                        class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">Coupons</a><a
+                        class="{{ request()->routeIs('admin.shipping-rates.*') ? 'active' : '' }}" href="{{ route('admin.shipping-rates.index') }}">Shipping</a><a
                         class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"
                         href="{{ route('admin.reviews.index') }}">Reviews</a><a
                         class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"

@@ -33,19 +33,32 @@ class ProductController extends Controller
         );
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         abort_unless($product->is_active, 404);
 
-        $product->load('category')->loadCount('reviews')->loadAvg('reviews', 'rating');
+        $product->load(['category', 'variants' => fn ($query) => $query->where('is_active', true)])->loadCount('reviews')->loadAvg('reviews', 'rating');
         $reviews = $product->reviews()->with('user')->latest()->paginate(8);
-        $userReview = request()->user()?->reviews()->whereBelongsTo($product)->first();
+        $userReview = $request->user()?->reviews()->whereBelongsTo($product)->first();
+        $recentIds = array_values(array_filter($request->session()->get('recently_viewed', []), fn ($id) => $id !== $product->id));
+        array_unshift($recentIds, $product->id);
+        $request->session()->put('recently_viewed', array_slice($recentIds, 0, 8));
+        $related = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->withSum('orderItems as sales_quantity', 'quantity')->withSum(['variants as variants_stock' => fn ($q) => $q->where('is_active', true)], 'stock')
+            ->where('is_active', true)->whereKeyNot($product->id)
+            ->orderByRaw('category_id = ? DESC', [$product->category_id])
+            ->orderByRaw('brand = ? DESC', [$product->brand])
+            ->orderByRaw('ABS(price - ?) ASC', [$product->price])->limit(4)->get();
+        $recentlyViewed = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->withSum('orderItems as sales_quantity', 'quantity')->withSum(['variants as variants_stock' => fn ($q) => $q->where('is_active', true)], 'stock')->where('is_active', true)
+            ->whereIn('id', array_slice($recentIds, 1))->get()
+            ->sortBy(fn ($item) => array_search($item->id, $recentIds, true))->take(4);
 
         return view('products.show', [
             'product' => $product,
             'reviews' => $reviews,
             'userReview' => $userReview,
-            'canReview' => request()->user()?->hasPurchasedProduct($product) === true,
+            'canReview' => $request->user()?->hasPurchasedProduct($product) === true,
+            'related' => $related,
+            'recentlyViewed' => $recentlyViewed,
         ]);
     }
 
@@ -63,7 +76,7 @@ class ProductController extends Controller
             'sort' => ['nullable', Rule::in(['price_asc', 'price_desc'])],
         ]);
 
-        $query = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->where('is_active', true);
+        $query = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->withSum('orderItems as sales_quantity', 'quantity')->withSum(['variants as variants_stock' => fn ($q) => $q->where('is_active', true)], 'stock')->where('is_active', true);
         $query->when($category, fn (Builder $builder) => $builder->whereBelongsTo($category));
         $query->when($categorySlugs !== [], fn (Builder $builder) => $builder->whereHas(
             'category',

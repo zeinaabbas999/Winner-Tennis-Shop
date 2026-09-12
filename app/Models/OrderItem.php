@@ -10,6 +10,7 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_name',
+        'product_variant_id', 'variant_name', 'variant_attributes', 'variant_sku',
         'price',
         'quantity',
         'subtotal',
@@ -17,7 +18,7 @@ class OrderItem extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'subtotal' => 'decimal:2', 'quantity' => 'integer'];
+        return ['price' => 'decimal:2', 'subtotal' => 'decimal:2', 'quantity' => 'integer', 'variant_attributes' => 'array'];
     }
 
     public function order()
@@ -28,5 +29,10 @@ class OrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

@@ -1,1 +1,3 @@
-@extends('layouts.store') @section('title','Not found') @section('content')<div class="container section-space text-center"><p class="display-1">404</p><h1>Page not found</h1><p class="text-secondary">The page or product you requested is no longer available.</p><a class="btn btn-dark mt-3" href="{{ route('products.index') }}">Browse collection</a></div>@endsection
+@extends('layouts.store')
+@section('title', 'Page not found')
+@section('content')<section class="error-page section-space"><div class="container"><p class="eyebrow text-green">Page not found</p><h1>That point is out.</h1><p>The page or product may have moved, become unavailable or never existed.</p><div class="d-flex flex-wrap gap-2"><a class="btn btn-dark" href="{{ route('products.index') }}">Browse the shop</a><a class="btn btn-outline-dark" href="{{ route('home') }}">Return home</a></div></div></section>@endsection

@@ -47,8 +47,11 @@
             <h3>Payment summary</h3>
             <dl>
                 <div><dt>Subtotal</dt><dd>{{ number_format($order->subtotal, 2) }} EGP</dd></div>
+                <div><dt>Coupon</dt><dd>-{{ number_format($order->coupon_discount, 2) }} EGP</dd></div>
+                <div><dt>Shipping</dt><dd>{{ number_format($order->shipping_fee, 2) }} EGP</dd></div>
                 <div><dt>Total</dt><dd>{{ number_format($order->total, 2) }} EGP</dd></div>
             </dl>
         </aside>
     </div>
+    @if($order->cancellation_status === 'pending')<section class="admin-order-panel mt-4"><h2>Cancellation request</h2><p>{{ $order->cancellation_reason }}</p><div class="d-flex gap-2"><form method="POST" action="{{ route('admin.orders.cancellation.review', $order) }}">@csrf @method('PATCH')<input type="hidden" name="decision" value="approved"><button class="btn btn-dark">Approve and restore stock</button></form><form method="POST" action="{{ route('admin.orders.cancellation.review', $order) }}">@csrf @method('PATCH')<input type="hidden" name="decision" value="rejected"><button class="btn btn-outline-dark">Reject</button></form></div></section>@endif
 @endsection

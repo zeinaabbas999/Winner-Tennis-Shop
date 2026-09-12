@@ -18,7 +18,7 @@ class OrderConfirmed extends Mailable implements ShouldQueue
 
     public array $backoff = [60, 300, 900];
 
-    public function __construct(public Order $order)
+    public function __construct(public Order $order, public ?string $guestAccessToken = null)
     {
         $this->afterCommit();
     }

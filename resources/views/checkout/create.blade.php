@@ -11,12 +11,13 @@
             <div class="checkout-layout">
                 <form class="checkout-form" method="POST" action="{{ route('checkout.store') }}">
                     @csrf
+                    <input type="hidden" name="checkout_token" value="{{ $checkoutToken }}">
                     <section class="customer-panel checkout-section" aria-labelledby="contact-details">
                         <p class="checkout-step">Contact</p>
                         <h2 id="contact-details">Customer details</h2>
                         <div class="row g-3">
-                            <div class="col-md-6"><label class="form-label" for="customer_name">Full Name</label><input id="customer_name" class="form-control" name="customer_name" value="{{ old('customer_name', auth()->user()->name) }}" required></div>
-                            <div class="col-md-6"><label class="form-label" for="customer_email">Email</label><input id="customer_email" class="form-control" type="email" name="customer_email" value="{{ old('customer_email', auth()->user()->email) }}" required></div>
+                            <div class="col-md-6"><label class="form-label" for="customer_name">Full Name</label><input id="customer_name" class="form-control" name="customer_name" value="{{ old('customer_name', auth()->user()?->name) }}" required></div>
+                            <div class="col-md-6"><label class="form-label" for="customer_email">Email</label><input id="customer_email" class="form-control" type="email" name="customer_email" value="{{ old('customer_email', auth()->user()?->email) }}" required></div>
                             <div><label class="form-label" for="phone">Phone Number</label><input id="phone" class="form-control" name="phone" value="{{ old('phone') }}" required></div>
                         </div>
                     </section>
@@ -26,7 +27,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label" for="governorate">Governorate</label>
-                                <input id="governorate" class="form-control" name="governorate" value="{{ old('governorate') }}" autocomplete="address-level1" required>
+                                <input id="governorate" class="form-control" name="governorate" value="{{ old('governorate') }}" list="governorates" autocomplete="address-level1" required><datalist id="governorates">@foreach($shippingRates as $rate)<option value="{{ $rate->governorate }}">@endforeach</datalist>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="city_area">City / Area</label>
@@ -71,17 +72,19 @@
                         @foreach($cart as $item)
                             <article class="checkout-summary-item">
                                 <div class="checkout-summary-media">
-                                    @if($item['product']->image)
-                                        <img src="{{ asset('storage/'.$item['product']->image) }}" alt="{{ $item['product']->name }}">
+                                    @if($item['product']->imageUrl())
+                                        <img src="{{ $item['product']->imageUrl() }}" alt="{{ $item['product']->name }}">
                                     @else
                                         <span>WINNER</span>
                                     @endif
                                 </div>
-                                <div><strong>{{ $item['product']->name }}</strong><small>Quantity {{ $item['quantity'] }} · {{ number_format((float) $item['product']->finalPrice(), 2) }} EGP each</small>@if($item['product']->hasDiscount())<small class="checkout-saving">{{ number_format((float) $item['product']->discount_percent) }}% discount applied</small>@endif</div>
-                                <strong>{{ number_format((float) $item['product']->finalPrice() * $item['quantity'], 2) }} EGP</strong>
+                                <div><strong>{{ $item['product']->name }}</strong>@if($item['variant'])<small>{{ $item['variant']->name }}</small>@endif<small>Quantity {{ $item['quantity'] }} · {{ number_format((float) $item['unit_price'], 2) }} EGP each</small>@if($item['product']->hasDiscount())<small class="checkout-saving">{{ number_format((float) $item['product']->discount_percent) }}% discount applied</small>@endif</div>
+                                <strong>{{ number_format((float) $item['unit_price'] * $item['quantity'], 2) }} EGP</strong>
                             </article>
                         @endforeach
-                        <footer><span>Total</span><strong>{{ number_format($subtotal, 2) }} EGP</strong></footer>
+                        @if($coupon)<div class="d-flex justify-content-between"><span>Coupon {{ $coupon->code }}</span><strong>-{{ number_format($couponDiscount, 2) }} EGP</strong></div>@endif
+                        <p class="small">Shipping is calculated from the entered governorate.</p>
+                        <footer><span>Estimated total before shipping</span><strong>{{ number_format($subtotal - $couponDiscount, 2) }} EGP</strong></footer>
                     </div>
                 </aside>
             </div>

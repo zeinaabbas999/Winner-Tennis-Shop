@@ -36,24 +36,28 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
-        return view('admin.products.form', ['product' => $product, 'categories' => Category::orderBy('name')->get()]);
+        return view('admin.products.form', ['product' => $product->load('variants'), 'categories' => Category::orderBy('name')->get()]);
     }
 
     public function update(SaveProductRequest $request, Product $product): RedirectResponse
     {
         $data = $this->data($request, $product);
+        $stockBefore = $product->stock;
         if ($request->hasFile('image') && $product->image) {
             Storage::disk('public')->delete($product->image);
         }
         $product->update($data);
+        if ($stockBefore !== $product->stock) {
+            $product->inventoryAdjustments()->create(['user_id' => $request->user()->id, 'quantity_before' => $stockBefore, 'quantity_after' => $product->stock, 'quantity_change' => $product->stock - $stockBefore, 'reason' => 'manual adjustment', 'note' => 'Updated through product editor']);
+        }
 
         return to_route('admin.products.index')->with('success', 'Product updated.');
     }
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->orderItems()->exists() || $product->reviews()->exists()) {
-            return back()->with('warning', 'Products with order or review history cannot be deleted; make this product inactive instead.');
+        if ($product->orderItems()->exists() || $product->reviews()->exists() || $product->inventoryAdjustments()->exists()) {
+            return back()->with('warning', 'Products with order, review or inventory history cannot be deleted; make this product inactive instead.');
         }
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -71,6 +75,7 @@ class ProductController extends Controller
             $data['specs'] = $data['specs'] ?: null;
         }
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_featured'] = $request->boolean('is_featured');
         $data['discount_percent'] = $data['discount_percent'] ?? 0;
         $base = Str::slug($data['name']) ?: 'product';
         $slug = $base;

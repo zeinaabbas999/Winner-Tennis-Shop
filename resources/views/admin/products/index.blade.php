@@ -22,8 +22,8 @@
                     <tr>
                         <td>
                             <div class="admin-product-cell">
-                                @if ($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="">
+                                @if ($product->imageUrl())
+                                    <img src="{{ $product->imageUrl() }}" alt="">
                                 @endif
                                 <strong>{{ $product->name }}</strong>
                             </div>

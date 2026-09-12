@@ -2,7 +2,7 @@
 @section('title', $product->name)
 @section('content')
 <div class="container product-detail"><div class="row g-4 g-lg-5">
-    <div class="col-lg-7"><div class="product-image-frame detail-image-frame">@if($product->image)<img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="image-fallback" hidden>WINNER TENNIS</div>@else<div class="image-fallback">WINNER TENNIS</div>@endif</div></div>
+    <div class="col-lg-7"><div class="product-image-frame detail-image-frame">@if($product->imageUrl())<img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="image-fallback" hidden>WINNER TENNIS</div>@else<div class="image-fallback">WINNER TENNIS</div>@endif</div></div>
     <div class="col-lg-5 product-info">
         <p class="product-brand">{{ $product->brand ?: 'WINNER' }}</p><h1>{{ $product->name }}</h1>
         <x-product-price :product="$product" class="product-detail-price" />
@@ -12,8 +12,10 @@
         <p class="product-description">{{ $product->description ?: 'Selected for dependable performance on court.' }}</p>
         @if($product->specs)<dl class="spec-grid">@foreach($product->specs as $label => $value)@if($value)<div><dt>{{ str($label)->replace('_', ' ')->title() }}</dt><dd>{{ $value }}</dd></div>@endif @endforeach</dl>@endif
         <div class="purchase-area">
-            <p class="stock {{ $product->stock ? 'in-stock' : 'out-stock' }}">{{ $product->stock <= 0 ? 'Out of stock' : ($product->stock <= 3 ? 'Only '.$product->stock.' left' : 'In stock') }}</p>
-            @if($product->stock > 0)<form method="POST" action="{{ route('cart.store', $product) }}">@csrf<div class="add-row"><input class="form-control" type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" aria-label="Quantity"><button class="btn btn-dark">Add to cart</button></div></form>@endif
+            @php($availableStock = $product->effectiveStock())<p class="stock {{ $availableStock ? 'in-stock' : 'out-stock' }}">{{ $availableStock <= 0 ? 'Out of stock' : ($availableStock <= 3 ? 'Only '.$availableStock.' left' : 'In stock') }}</p>
+            @if($availableStock > 0)<form method="POST" action="{{ route('cart.store', $product) }}">@csrf
+                @if($product->variants->isNotEmpty())<label class="form-label" for="variant">Choose an option</label><select class="form-select mb-3" id="variant" name="variant_id" required><option value="">Select</option>@foreach($product->variants as $variant)<option value="{{ $variant->id }}" @disabled($variant->stock < 1)>{{ $variant->name }} · {{ $variant->stock > 0 ? $variant->stock.' available' : 'Out of stock' }}</option>@endforeach</select>@endif
+                <div class="add-row"><input class="form-control" type="number" name="quantity" value="1" min="1" max="{{ $availableStock }}" aria-label="Quantity"><button class="btn btn-dark">Add to cart</button></div></form>@endif
         </div>
         <a class="back-link" href="{{ route('products.index') }}">Back to shop</a>
     </div>
@@ -36,4 +38,6 @@
     <div class="review-list">@forelse($reviews as $review)<article class="review-item"><header><div><strong>{{ $review->user->name }}</strong><span>{{ $review->rating }} / 5</span></div><time datetime="{{ $review->created_at->toDateString() }}">{{ $review->created_at->format('d M Y') }}</time></header>@if($review->comment)<p>{{ $review->comment }}</p>@endif</article>@empty<p class="review-empty">Be the first verified customer to review this product.</p>@endforelse</div>
     @if($reviews->hasPages())<div class="mt-4">{{ $reviews->links() }}</div>@endif
 </div></section>
+@if($related->isNotEmpty())<section class="section-space"><div class="container"><header class="section-heading"><p class="eyebrow text-green">Selected for you</p><h2>You may also like</h2></header><div class="product-grid">@foreach($related as $item)@include('partials.product-card', ['product' => $item])@endforeach</div></div></section>@endif
+@if($recentlyViewed->isNotEmpty())<section class="section-space"><div class="container"><header class="section-heading"><p class="eyebrow text-green">Back on court</p><h2>Recently viewed</h2></header><div class="product-grid">@foreach($recentlyViewed as $item)@include('partials.product-card', ['product' => $item])@endforeach</div></div></section>@endif
 @endsection

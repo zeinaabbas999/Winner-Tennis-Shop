@@ -44,12 +44,15 @@
                                     <tr>
                                         <td style="padding:14px 0;border-bottom:1px solid #d8d5cc;">
                                             <strong>{{ $item->product_name }}</strong><br>
+                                            @if($item->variant_name)<span style="color:#59615c;font-size:13px;">{{ $item->variant_name }}</span><br>@endif
                                             <span style="color:#59615c;font-size:13px;">{{ $item->quantity }} × {{ number_format((float) $item->price, 2) }} EGP</span>
                                         </td>
                                         <td style="padding:14px 0;border-bottom:1px solid #d8d5cc;text-align:right;font-weight:700;">{{ number_format((float) $item->subtotal, 2) }} EGP</td>
                                     </tr>
                                 @endforeach
                                 <tr>
+                                    <td style="padding:6px 0;">Coupon discount</td><td style="padding:6px 0;text-align:right;">-{{ number_format((float) $order->coupon_discount, 2) }} EGP</td>
+                                </tr><tr><td style="padding:6px 0;">Shipping</td><td style="padding:6px 0;text-align:right;">{{ number_format((float) $order->shipping_fee, 2) }} EGP</td></tr><tr>
                                     <td style="padding:16px 0 6px;">Subtotal</td>
                                     <td style="padding:16px 0 6px;text-align:right;">{{ number_format((float) $order->subtotal, 2) }} EGP</td>
                                 </tr>
@@ -66,6 +69,7 @@
                             <p style="margin:0;color:#59615c;line-height:1.6;white-space:pre-line;">{{ $order->address }}</p>
                             <p style="margin:8px 0 0;color:#59615c;line-height:1.6;">{{ $order->phone }}</p>
                             <p style="margin:14px 0 0;color:#59615c;">Current status: <strong>{{ ucfirst($order->status) }}</strong></p>
+                            @if($guestAccessToken)<p style="margin:18px 0 0"><a href="{{ route('guest.orders.show', [$order, $guestAccessToken]) }}" style="display:inline-block;background:#153f2e;color:#fff;padding:12px 18px;text-decoration:none">View your secure order page</a></p><p style="font-size:12px;color:#59615c">Keep this private link. It provides access to this guest order.</p>@endif
                         </td>
                     </tr>
                     <tr>

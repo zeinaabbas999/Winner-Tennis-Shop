@@ -50,7 +50,7 @@ class CommerceTest extends TestCase
         Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['price' => 250, 'stock' => 5]);
-        $response = $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), $this->checkoutDetails());
+        $response = $this->actingAs($user)->withSession(['cart' => [$product->id => 2], 'checkout_tokens' => [$this->checkoutToken()]])->post(route('checkout.store'), $this->checkoutDetails());
         $order = Order::firstOrFail();
         $response->assertRedirect(route('orders.show', $order))->assertSessionMissing('cart');
         $this->assertDatabaseHas('orders', ['user_id' => $user->id, 'total' => 500]);
@@ -65,10 +65,28 @@ class CommerceTest extends TestCase
         Mail::fake();
         $user = User::factory()->create();
         $product = $this->product(['stock' => 1]);
-        $this->actingAs($user)->withSession(['cart' => [$product->id => 2]])->post(route('checkout.store'), $this->checkoutDetails())->assertSessionHasErrors('cart');
+        $this->actingAs($user)->withSession(['cart' => [$product->id => 2], 'checkout_tokens' => [$this->checkoutToken()]])->post(route('checkout.store'), $this->checkoutDetails())->assertSessionHasErrors('cart');
         $this->assertDatabaseCount('orders', 0);
         $this->assertSame(1, $product->fresh()->stock);
         Mail::assertNothingQueued();
+    }
+
+    public function test_checkout_token_prevents_duplicate_order_submission(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create();
+        $product = $this->product(['price' => 250, 'stock' => 5]);
+        $session = ['cart' => [$product->id => 1], 'checkout_tokens' => [$this->checkoutToken()]];
+
+        $this->actingAs($user)->withSession($session)->post(route('checkout.store'), $this->checkoutDetails())->assertRedirect();
+        $existing = Order::firstOrFail();
+
+        $this->actingAs($user)->withSession($session)->post(route('checkout.store'), $this->checkoutDetails())
+            ->assertRedirect(route('orders.show', $existing))
+            ->assertSessionHas('warning');
+
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame(4, $product->fresh()->stock);
     }
 
     public function test_queue_dispatch_failure_does_not_roll_back_a_completed_order(): void
@@ -78,7 +96,7 @@ class CommerceTest extends TestCase
         Mail::shouldReceive('to')->once()->andThrow(new \RuntimeException('Mail transport unavailable.'));
 
         $response = $this->actingAs($user)
-            ->withSession(['cart' => [$product->id => 1]])
+            ->withSession(['cart' => [$product->id => 1], 'checkout_tokens' => [$this->checkoutToken()]])
             ->post(route('checkout.store'), $this->checkoutDetails());
 
         $order = Order::firstOrFail();
@@ -98,6 +116,7 @@ class CommerceTest extends TestCase
     private function checkoutDetails(): array
     {
         return [
+            'checkout_token' => $this->checkoutToken(),
             'customer_name' => 'Customer',
             'customer_email' => 'buyer@example.com',
             'phone' => '01000000000',
@@ -109,6 +128,11 @@ class CommerceTest extends TestCase
             'landmark' => 'Near the sports club',
             'delivery_notes' => 'Call on arrival',
         ];
+    }
+
+    private function checkoutToken(): string
+    {
+        return '5ad9a868-7e87-4f2f-8846-7e36f18be64e';
     }
 
     public function test_category_with_products_cannot_be_deleted(): void
