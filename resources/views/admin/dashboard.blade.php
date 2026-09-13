@@ -12,7 +12,7 @@
     <section class="admin-section">
         <h2>Recent orders</h2>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle admin-table">
                 <thead>
                     <tr>
                         <th>Order</th>

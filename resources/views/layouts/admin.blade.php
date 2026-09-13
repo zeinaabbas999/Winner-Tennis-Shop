@@ -29,7 +29,7 @@
                         class="{{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"
                         href="{{ route('admin.reviews.index') }}">Reviews</a><a
                         class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
-                        href="{{ route('admin.users.index') }}">Users</a><a
+                        href="{{ route('admin.users.index') }}">Users</a><a class="{{ request()->routeIs('admin.policies.*') ? 'active' : '' }}" href="{{ route('admin.policies.index') }}">Policies</a><a
                         class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
                         href="{{ route('admin.settings.edit') }}">Settings</a></nav>
                 <div class="admin-sidebar-bottom"><a href="{{ route('home') }}">View store</a>
@@ -40,6 +40,7 @@
             <main class="col-md-9 col-xl-10 admin-main">@include('partials.alerts')@yield('content')</main>
         </div>
     </div>
+    <x-logout-dialog />
 </body>
 
 </html>

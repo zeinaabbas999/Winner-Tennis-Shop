@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PolicyController as AdminPolicyController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductVariantController as AdminProductVariantController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
@@ -33,7 +34,7 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 Route::view('/racket-guide', 'pages.racket-guide')->name('racket-guide');
 Route::view('/services', 'pages.services')->name('services');
 Route::view('/contact', 'pages.contact')->name('contact');
-Route::view('/policies', 'pages.policies')->name('policies');
+Route::get('/policies', [LegalController::class, 'policies'])->name('policies');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
 Route::get('/cookies', [LegalController::class, 'cookies'])->name('cookies');
@@ -94,6 +95,10 @@ Route::middleware(['auth', 'admin'])
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
         Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
         Route::patch('users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore');
+        Route::post('users/{user}/points', [AdminUserController::class, 'adjustPoints'])->name('users.points.store');
+        Route::get('policies', [AdminPolicyController::class, 'index'])->name('policies.index');
+        Route::get('policies/{policyPage}/edit', [AdminPolicyController::class, 'edit'])->name('policies.edit');
+        Route::put('policies/{policyPage}', [AdminPolicyController::class, 'update'])->name('policies.update');
         Route::get('settings', [AdminSettingController::class, 'edit'])->name('settings.edit');
         Route::patch('settings', [AdminSettingController::class, 'update'])->name('settings.update');
     });

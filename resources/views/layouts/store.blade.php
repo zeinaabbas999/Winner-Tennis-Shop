@@ -103,6 +103,7 @@
             href="{{ route('policies') }}">shipping, returns and exchange policies</a>.</div>
 </footer>
 @include('partials.cookie-consent')
+<x-logout-dialog />
 </body>
 
 </html>

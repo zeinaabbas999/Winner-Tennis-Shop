@@ -20,13 +20,15 @@ class Order extends Model
         'phone',
         'address',
         'guest_access_token', 'coupon_code', 'coupon_discount', 'shipping_fee',
+        'points_redeemed', 'points_discount', 'points_earned', 'points_earned_at',
+        'points_reversed_at', 'points_redemption_restored_at',
         'cancellation_requested_at', 'cancellation_reason', 'cancellation_status',
         'cancellation_reviewed_at', 'cancellation_reviewed_by',
     ];
 
     protected function casts(): array
     {
-        return ['subtotal' => 'decimal:2', 'total' => 'decimal:2', 'coupon_discount' => 'decimal:2', 'shipping_fee' => 'decimal:2', 'cancellation_requested_at' => 'datetime', 'cancellation_reviewed_at' => 'datetime'];
+        return ['subtotal' => 'decimal:2', 'total' => 'decimal:2', 'coupon_discount' => 'decimal:2', 'points_discount' => 'decimal:2', 'shipping_fee' => 'decimal:2', 'points_redeemed' => 'integer', 'points_earned' => 'integer', 'points_earned_at' => 'datetime', 'points_reversed_at' => 'datetime', 'points_redemption_restored_at' => 'datetime', 'cancellation_requested_at' => 'datetime', 'cancellation_reviewed_at' => 'datetime'];
     }
 
     public function user()
@@ -42,6 +44,11 @@ class Order extends Model
     public function cancellationReviewer()
     {
         return $this->belongsTo(User::class, 'cancellation_reviewed_by')->withTrashed();
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class);
     }
 
     public function canRequestCancellation(): bool

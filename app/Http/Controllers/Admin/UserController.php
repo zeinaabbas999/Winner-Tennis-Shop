@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Loyalty;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -48,6 +50,9 @@ class UserController extends Controller
             'customer' => $customer,
             'orders' => $orders,
             'totalSpent' => $customer->orders()->sum('total'),
+            'loyaltyActivity' => $customer->loyaltyTransactions()->with('order', 'admin')->latest()->limit(20)->get(),
+            'lifetimeEarned' => $customer->loyaltyTransactions()->where('points_change', '>', 0)->sum('points_change'),
+            'lifetimeUsed' => abs($customer->loyaltyTransactions()->where('points_change', '<', 0)->sum('points_change')),
         ]);
     }
 
@@ -66,6 +71,18 @@ class UserController extends Controller
         $customer->restore();
 
         return back()->with('success', 'Customer account restored.');
+    }
+
+    public function adjustPoints(Request $request, int $user, Loyalty $loyalty): RedirectResponse
+    {
+        $customer = $this->customer($user);
+        $data = $request->validate([
+            'points_change' => ['required', 'integer', 'not_in:0', 'between:-1000000,1000000'],
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+        DB::transaction(fn () => $loyalty->adjust($customer, $request->user(), $data['points_change'], $data['reason']));
+
+        return back()->with('success', 'Points balance adjusted and recorded.');
     }
 
     private function customer(int $id): User

@@ -63,6 +63,15 @@
                         <div class="payment-option" role="status"><span class="payment-option__mark" aria-hidden="true"></span><span><strong>Cash on Delivery</strong><small>Pay when your WINNER order arrives.</small></span></div>
                         <div class="payment-future"><strong>Future payment methods · Coming soon</strong><span>Card via Paymob and mobile wallet options can be added here when a secure gateway is connected.</span></div>
                     </section>
+                    @auth
+                    <section class="customer-panel checkout-section" aria-labelledby="rewards-details">
+                        <p class="checkout-step">Rewards</p><h2 id="rewards-details">Use your points</h2>
+                        <p>You have <strong>{{ number_format($availablePoints) }} points</strong>, worth up to {{ number_format($availablePoints * .10, 2) }} EGP.</p>
+                        <label class="form-label" for="points_to_redeem">Points to redeem</label>
+                        <select class="form-select" id="points_to_redeem" name="points_to_redeem"><option value="0">Do not use points</option>@for($points = 100; $points <= min($availablePoints - ($availablePoints % 100), floor(($subtotal - $couponDiscount) * 10 / 100) * 100); $points += 100)<option value="{{ $points }}" @selected((int) old('points_to_redeem') === $points)>{{ number_format($points) }} points, {{ number_format($points * .10, 2) }} EGP off</option>@endfor</select>
+                        <small>Redeem in blocks of 100 points. Shipping is not covered by points.</small>
+                    </section>
+                    @endauth
                     <button class="btn btn-dark w-100" type="submit">Place order</button>
                 </form>
                 <aside>

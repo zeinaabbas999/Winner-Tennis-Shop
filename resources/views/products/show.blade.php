@@ -22,7 +22,7 @@
 </div></div>
 
 <section class="reviews-section"><div class="container reviews-container">
-    <header class="reviews-head"><div><p class="eyebrow text-green">Customer reviews</p><h2>Player feedback</h2></div><div>@if($product->reviews_count)<strong>{{ number_format((float) $product->reviews_avg_rating, 1) }} / 5</strong><span>Based on {{ $product->reviews_count }} {{ Str::plural('review', $product->reviews_count) }}</span>@else<strong>New to the court</strong><span>No reviews yet</span>@endif</div></header>
+    <header class="product-section-head"><div><p class="eyebrow text-green">Customer reviews</p><h2>Player feedback</h2></div>@if($product->reviews_count)<div class="product-section-summary"><strong>{{ number_format((float) $product->reviews_avg_rating, 1) }} / 5</strong><span>Based on {{ $product->reviews_count }} {{ Str::plural('review', $product->reviews_count) }}</span></div>@endif</header>
     @auth
         @if($userReview)
             <form class="review-form shared-panel" method="POST" action="{{ route('reviews.update', $userReview) }}">@csrf @method('PATCH')<h3>Edit your review</h3>@include('products.partials.review-fields', ['review' => $userReview])<div class="review-form-actions"><button class="btn btn-dark">Update review</button></div></form>
@@ -30,14 +30,14 @@
         @elseif($canReview)
             <form class="review-form shared-panel" method="POST" action="{{ route('reviews.store', $product) }}">@csrf<h3>Share your experience</h3>@include('products.partials.review-fields', ['review' => null])<div class="review-form-actions"><button class="btn btn-dark">Publish review</button></div></form>
         @else
-            <p class="review-eligibility">Reviews are available after purchasing this product in a non-cancelled order.</p>
+            <div class="review-empty-state"><strong>New to the court</strong><h3>No reviews yet</h3><p>Verified customers can review this product after purchasing it in a non-cancelled order.</p></div>
         @endif
     @else
         <p class="review-eligibility"><a href="{{ route('login') }}">Log in</a> to review a product you have purchased.</p>
     @endauth
-    <div class="review-list">@forelse($reviews as $review)<article class="review-item"><header><div><strong>{{ $review->user->name }}</strong><span>{{ $review->rating }} / 5</span></div><time datetime="{{ $review->created_at->toDateString() }}">{{ $review->created_at->format('d M Y') }}</time></header>@if($review->comment)<p>{{ $review->comment }}</p>@endif</article>@empty<p class="review-empty">Be the first verified customer to review this product.</p>@endforelse</div>
+    <div class="review-list">@foreach($reviews as $review)<article class="review-item"><header><div><strong>{{ $review->user->name }}</strong><span>{{ $review->rating }} / 5</span></div><time datetime="{{ $review->created_at->toDateString() }}">{{ $review->created_at->format('d M Y') }}</time></header>@if($review->comment)<p>{{ $review->comment }}</p>@endif</article>@endforeach</div>
     @if($reviews->hasPages())<div class="mt-4">{{ $reviews->links() }}</div>@endif
 </div></section>
-@if($related->isNotEmpty())<section class="section-space"><div class="container"><header class="section-heading"><p class="eyebrow text-green">Selected for you</p><h2>You may also like</h2></header><div class="product-grid">@foreach($related as $item)@include('partials.product-card', ['product' => $item])@endforeach</div></div></section>@endif
-@if($recentlyViewed->isNotEmpty())<section class="section-space"><div class="container"><header class="section-heading"><p class="eyebrow text-green">Back on court</p><h2>Recently viewed</h2></header><div class="product-grid">@foreach($recentlyViewed as $item)@include('partials.product-card', ['product' => $item])@endforeach</div></div></section>@endif
+@if($related->isNotEmpty())<section class="product-lower-section"><div class="container reviews-container"><header class="product-section-head"><div><p class="eyebrow text-green">Selected for you</p><h2>You may also like</h2></div></header><div class="row g-4 product-grid">@foreach($related as $item)<div class="col-6 col-lg-3">@include('partials.product-card', ['product' => $item])</div>@endforeach</div></div></section>@endif
+@if($recentlyViewed->isNotEmpty())<section class="product-lower-section"><div class="container reviews-container"><header class="product-section-head"><div><p class="eyebrow text-green">Back on court</p><h2>Recently viewed</h2></div></header><div class="row g-4 product-grid">@foreach($recentlyViewed as $item)<div class="col-6 col-lg-3">@include('partials.product-card', ['product' => $item])</div>@endforeach</div></div></section>@endif
 @endsection

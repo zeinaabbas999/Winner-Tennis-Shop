@@ -52,7 +52,7 @@ class CouponController extends Controller
 
     private function data(Request $request, ?Coupon $coupon = null): array
     {
-        $data = $request->validate(['code' => ['required', 'string', 'max:50', Rule::unique('coupons')->ignore($coupon)], 'type' => ['required', Rule::in(['percentage', 'fixed'])], 'value' => ['required', 'numeric', 'min:0.01', 'max:999999.99'], 'minimum_order_amount' => ['required', 'numeric', 'min:0'], 'usage_limit' => ['nullable', 'integer', 'min:1'], 'per_user_limit' => ['nullable', 'integer', 'min:1'], 'starts_at' => ['nullable', 'date'], 'expires_at' => ['nullable', 'date', 'after:starts_at'], 'is_active' => ['nullable', 'boolean']]);
+        $data = $request->validate(['code' => ['required', 'string', 'max:50', Rule::unique('coupons')->ignore($coupon)], 'type' => ['required', Rule::in(['percentage', 'fixed'])], 'value' => ['required', 'numeric', 'min:0.01', 'max:999999.99'], 'minimum_order_amount' => ['required', 'numeric', 'min:0'], 'max_discount_amount' => ['nullable', 'numeric', 'min:0.01', 'max:99999999.99'], 'starts_at' => ['nullable', 'date'], 'expires_at' => ['nullable', 'date', 'after:starts_at'], 'is_active' => ['nullable', 'boolean']]);
         if ($data['type'] === 'percentage' && (float) $data['value'] > 100) {
             throw ValidationException::withMessages(['value' => 'Percentage coupons cannot exceed 100%.']);
         }

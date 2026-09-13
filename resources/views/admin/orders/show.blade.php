@@ -31,7 +31,7 @@
                     <thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead>
                     <tbody>
                         @foreach($order->items as $item)
-                            <tr><td>{{ $item->product_name }}</td><td>{{ number_format($item->price, 2) }} EGP</td><td>{{ $item->quantity }}</td><td>{{ number_format($item->subtotal, 2) }} EGP</td></tr>
+                            <tr><td><div class="admin-order-item"><div class="admin-order-item__media">@if($item->product?->imageUrl())<img src="{{ $item->product->imageUrl() }}" alt="{{ $item->product_name }}">@else<span>WINNER</span>@endif</div><div><strong>{{ $item->product_name }}</strong>@if($item->variant_name)<small>{{ $item->variant_name }}</small>@endif</div></div></td><td>{{ number_format($item->price, 2) }} EGP</td><td>{{ $item->quantity }}</td><td>{{ number_format($item->subtotal, 2) }} EGP</td></tr>
                         @endforeach
                     </tbody>
                     <tfoot><tr><th colspan="3">Total</th><th>{{ number_format($order->total, 2) }} EGP</th></tr></tfoot>
@@ -48,8 +48,10 @@
             <dl>
                 <div><dt>Subtotal</dt><dd>{{ number_format($order->subtotal, 2) }} EGP</dd></div>
                 <div><dt>Coupon</dt><dd>-{{ number_format($order->coupon_discount, 2) }} EGP</dd></div>
+                <div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format($order->points_discount, 2) }} EGP</dd></div>
                 <div><dt>Shipping</dt><dd>{{ number_format($order->shipping_fee, 2) }} EGP</dd></div>
                 <div><dt>Total</dt><dd>{{ number_format($order->total, 2) }} EGP</dd></div>
+                <div><dt>Points earned</dt><dd>{{ number_format($order->points_earned) }}</dd></div>
             </dl>
         </aside>
     </div>

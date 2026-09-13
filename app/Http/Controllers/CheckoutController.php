@@ -9,7 +9,9 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingRate;
+use App\Models\User;
 use App\Support\Cart;
+use App\Support\Loyalty;
 use App\Support\VerificationRequirement;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +25,7 @@ use Throwable;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private Cart $cart, private VerificationRequirement $verification) {}
+    public function __construct(private Cart $cart, private VerificationRequirement $verification, private Loyalty $loyalty) {}
 
     public function create(): View|RedirectResponse
     {
@@ -41,7 +43,7 @@ class CheckoutController extends Controller
         $subtotal = $this->cart->subtotal($items);
         $coupon = $this->couponFor($subtotal, request()->user()?->id, request()->user()?->email);
 
-        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'checkoutToken' => $checkoutToken]);
+        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'checkoutToken' => $checkoutToken, 'availablePoints' => request()->user()?->loyalty_points ?? 0]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
@@ -63,6 +65,8 @@ class CheckoutController extends Controller
         $guestPlainToken = $request->user() ? null : Str::random(64);
         try {
             $order = DB::transaction(function () use ($request, $items, $validated, $guestPlainToken) {
+                $user = $request->user() ? User::lockForUpdate()->findOrFail($request->user()->id) : null;
+                $points = $user ? (int) ($validated['points_to_redeem'] ?? 0) : 0;
                 $subtotal = '0.00';
                 $lockedItems = [];
                 foreach ($items as $item) {
@@ -81,13 +85,21 @@ class CheckoutController extends Controller
                 }
                 $coupon = $this->couponFor($subtotal, $request->user()?->id, $validated['customer_email'], true);
                 $couponDiscount = $coupon?->discountFor($subtotal) ?? '0.00';
+                $merchandisePayable = bcsub($subtotal, $couponDiscount, 2);
+                $pointsDiscount = $this->loyalty->redemptionDiscount($points);
+                if ($points > 0 && ($points % Loyalty::REDEMPTION_BLOCK !== 0 || $points > $user->loyalty_points || bccomp($pointsDiscount, $merchandisePayable, 2) === 1)) {
+                    throw ValidationException::withMessages(['points_to_redeem' => 'Choose an available points amount in blocks of 100.']);
+                }
                 $shippingRate = ShippingRate::whereRaw('LOWER(governorate) = ?', [strtolower($validated['governorate'])])->where('is_active', true)->lockForUpdate()->first();
                 if (! $shippingRate && ShippingRate::where('is_active', true)->exists()) {
                     throw ValidationException::withMessages(['governorate' => 'Please choose a supported delivery governorate.']);
                 }
-                $shipping = $shippingRate?->feeFor(bcsub($subtotal, $couponDiscount, 2)) ?? '0.00';
-                $total = bcadd(bcsub($subtotal, $couponDiscount, 2), $shipping, 2);
-                $order = Order::create(['user_id' => $request->user()?->id, 'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)), 'checkout_token' => $validated['checkout_token'], 'guest_access_token' => $guestPlainToken ? hash('sha256', $guestPlainToken) : null, 'status' => 'pending', 'subtotal' => $subtotal, 'coupon_code' => $coupon?->code, 'coupon_discount' => $couponDiscount, 'shipping_fee' => $shipping, 'total' => $total, 'customer_name' => $validated['customer_name'], 'customer_email' => $validated['customer_email'], 'phone' => $validated['phone'], 'address' => $this->formatDeliveryAddress($validated)]);
+                $shipping = $shippingRate?->feeFor($merchandisePayable) ?? '0.00';
+                $total = bcadd(bcsub($merchandisePayable, $pointsDiscount, 2), $shipping, 2);
+                $order = Order::create(['user_id' => $user?->id, 'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)), 'checkout_token' => $validated['checkout_token'], 'guest_access_token' => $guestPlainToken ? hash('sha256', $guestPlainToken) : null, 'status' => 'pending', 'subtotal' => $subtotal, 'coupon_code' => $coupon?->code, 'coupon_discount' => $couponDiscount, 'points_redeemed' => $points, 'points_discount' => $pointsDiscount, 'shipping_fee' => $shipping, 'total' => $total, 'customer_name' => $validated['customer_name'], 'customer_email' => $validated['customer_email'], 'phone' => $validated['phone'], 'address' => $this->formatDeliveryAddress($validated)]);
+                if ($user) {
+                    $this->loyalty->redeem($user, $order, $points, $merchandisePayable);
+                }
                 foreach ($lockedItems as $item) {
                     $line = bcmul($item['price'], (string) $item['quantity'], 2);
                     $order->items()->create(['product_id' => $item['product']->id, 'product_variant_id' => $item['variant']?->id, 'product_name' => $item['product']->name, 'variant_name' => $item['variant']?->name, 'variant_attributes' => $item['variant']?->attributes, 'variant_sku' => $item['variant']?->sku, 'price' => $item['price'], 'quantity' => $item['quantity'], 'subtotal' => $line]);
@@ -139,9 +151,6 @@ class CheckoutController extends Controller
             $query->lockForUpdate();
         } $coupon = $query->first();
         if (! $coupon?->isAvailable($subtotal)) {
-            return null;
-        }
-        if ($coupon->per_user_limit && $coupon->usages()->where(fn ($q) => $userId ? $q->where('user_id', $userId) : $q->where('customer_email', strtolower((string) $email)))->count() >= $coupon->per_user_limit) {
             return null;
         }
 

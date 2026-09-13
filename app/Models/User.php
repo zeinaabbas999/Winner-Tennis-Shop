@@ -45,6 +45,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
     }
 
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class);
+    }
+
     public function wishlistProductIds(): Collection
     {
         return $this->cachedWishlistProductIds ??= $this->wishlist()->pluck('products.id');
@@ -73,6 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'loyalty_points' => 'integer',
         ];
     }
 }

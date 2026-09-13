@@ -49,7 +49,7 @@
                     </form>
                 </article>
             @empty
-                <x-empty-state title="No items yet" text="Your cart is currently empty." :href="route('products.index')" action="Shop the collection" />
+                <x-empty-state kind="cart" title="Your bag is empty" text="Add something built for the court." :href="route('products.index')" action="Shop products" />
             @endforelse
 
             @if($cart->isNotEmpty())

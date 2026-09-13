@@ -25,6 +25,7 @@ class CheckoutRequest extends FormRequest
             'floor_apartment' => ['nullable', 'string', 'max:100'],
             'landmark' => ['nullable', 'string', 'max:255'],
             'delivery_notes' => ['nullable', 'string', 'max:500'],
+            'points_to_redeem' => ['nullable', 'integer', 'min:0', 'multiple_of:100'],
         ];
     }
 }

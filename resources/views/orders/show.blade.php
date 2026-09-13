@@ -51,9 +51,11 @@
                         <dl>
                             <div><dt>Subtotal</dt><dd>{{ number_format((float) $order->subtotal, 2) }} EGP</dd></div>
                             @if((float)$order->coupon_discount>0)<div><dt>Coupon {{ $order->coupon_code }}</dt><dd>-{{ number_format((float)$order->coupon_discount,2) }} EGP</dd></div>@endif
+                            @if($order->points_redeemed > 0)<div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format((float)$order->points_discount,2) }} EGP</dd></div>@endif
                             <div><dt>Shipping</dt><dd>{{ number_format((float)$order->shipping_fee,2) }} EGP</dd></div>
                             <div class="order-detail-total"><dt>Total</dt><dd>{{ number_format((float) $order->total, 2) }} EGP</dd></div>
                         </dl>
+                        @if($order->points_earned > 0)<p class="order-reward-note">{{ number_format($order->points_earned) }} points earned from this order.</p>@endif
                     </section>
                     <section class="customer-panel order-detail-information">
                         <h2>Shipping information</h2>

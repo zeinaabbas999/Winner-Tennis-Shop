@@ -24,14 +24,15 @@ class InventoryController extends Controller
 
     public function store(Request $request, Product $product): RedirectResponse
     {
-        $data = $request->validate(['stock' => ['required', 'integer', 'min:0'], 'reason' => ['required', Rule::in(['manual adjustment', 'restock', 'correction'])], 'note' => ['nullable', 'string', 'max:500']]);
+        $data = $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
         DB::transaction(function () use ($request, $product, $data) {
             $locked = Product::lockForUpdate()->findOrFail($product->id);
             $before = $locked->stock;
-            $locked->update(['stock' => $data['stock']]);
-            $locked->inventoryAdjustments()->create(['user_id' => $request->user()->id, 'quantity_before' => $before, 'quantity_after' => $data['stock'], 'quantity_change' => $data['stock'] - $before, 'reason' => $data['reason'], 'note' => $data['note'] ?? null]);
+            $after = $before + $data['quantity'];
+            $locked->update(['stock' => $after]);
+            $locked->inventoryAdjustments()->create(['user_id' => $request->user()->id, 'quantity_before' => $before, 'quantity_after' => $after, 'quantity_change' => $data['quantity'], 'reason' => 'restock', 'note' => 'Restocked from inventory administration']);
         });
 
-        return back()->with('success', 'Inventory updated.');
+        return back()->with('success', 'Product restocked.');
     }
 }

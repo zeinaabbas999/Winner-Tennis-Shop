@@ -4,14 +4,14 @@
         <form class="wishlist-toggle" method="POST" action="{{ $wishlisted ? route('wishlist.destroy', $product) : route('wishlist.store', $product) }}">
             @csrf
             @if ($wishlisted) @method('DELETE') @endif
-            <button type="submit" aria-label="{{ $wishlisted ? 'Remove from' : 'Add to' }} wishlist" aria-pressed="{{ $wishlisted ? 'true' : 'false' }}">{{ $wishlisted ? '♥' : '♡' }}</button>
+            <button class="wishlist-heart" type="submit" aria-label="{{ $wishlisted ? 'Remove from' : 'Add to' }} wishlist" aria-pressed="{{ $wishlisted ? 'true' : 'false' }}"><span aria-hidden="true">{{ $wishlisted ? '♥' : '♡' }}</span></button>
         </form>
     @else
-        <a class="wishlist-toggle" href="{{ route('login') }}" aria-label="Log in to add this product to your wishlist">♡</a>
+        <a class="wishlist-toggle wishlist-heart" href="{{ route('login') }}" aria-label="Log in to add this product to your wishlist"><span aria-hidden="true">♡</span></a>
     @endauth
     <a href="{{ route('products.show', $product) }}">
         <div class="product-image-frame">
-            @php($badges = array_slice($product->badges(), 0, 2))
+            @php($badges = array_slice($product->badges(), 0, 3))
             @if ($badges || $product->effectiveStock() <= 0)
                 <div class="product-card-badges" aria-label="Product status">
                     @foreach ($badges as $badge)<span class="discount-badge">{{ $badge }}</span>@endforeach

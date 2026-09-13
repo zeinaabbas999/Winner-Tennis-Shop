@@ -16,8 +16,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $activity = $request->user()->loyaltyTransactions()->with('order')->latest()->limit(8)->get();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'loyaltyActivity' => $activity,
         ]);
     }
 

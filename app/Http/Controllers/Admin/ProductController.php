@@ -77,6 +77,7 @@ class ProductController extends Controller
         $data['is_active'] = $request->boolean('is_active');
         $data['is_featured'] = $request->boolean('is_featured');
         $data['discount_percent'] = $data['discount_percent'] ?? 0;
+        $data['new_badge_mode'] = $data['new_badge_mode'] ?? $product?->new_badge_mode ?? 'auto';
         $base = Str::slug($data['name']) ?: 'product';
         $slug = $base;
         $i = 2;

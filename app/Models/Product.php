@@ -19,6 +19,7 @@ class Product extends Model
         'image',
         'is_active',
         'is_featured',
+        'new_badge_mode',
     ];
 
     protected function casts(): array
@@ -73,9 +74,18 @@ class Product extends Model
         return array_values(array_filter([
             $this->hasDiscount() ? number_format((float) $this->discount_percent).'% off' : null,
             $stock > 0 && $stock <= $lowStockThreshold ? 'Limited stock' : null,
-            $this->created_at?->isAfter(now()->subDays(30)) ? 'New' : null,
+            $this->showsNewBadge() ? 'New' : null,
             ($this->sales_quantity ?? 0) >= 5 ? 'Best seller' : null,
         ]));
+    }
+
+    public function showsNewBadge(): bool
+    {
+        return match ($this->new_badge_mode ?? 'auto') {
+            'force_on' => true,
+            'force_off' => false,
+            default => $this->created_at?->isAfter(now()->subDays(7)) === true,
+        };
     }
 
     public function effectiveStock(): int
