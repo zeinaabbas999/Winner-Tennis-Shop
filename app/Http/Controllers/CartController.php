@@ -17,8 +17,13 @@ class CartController extends Controller
     public function index(Request $request): View
     {
         $items = $this->cart->items($request);
+        $subtotal = $this->cart->subtotal($items);
+        $coupon = Coupon::where('code', $request->session()->get('coupon_code'))->first();
+        if (! $coupon?->isAvailable($subtotal)) {
+            $coupon = null;
+        }
 
-        return view('cart.index', ['cart' => $items, 'subtotal' => (float) $this->cart->subtotal($items)]);
+        return view('cart.index', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0)]);
     }
 
     public function store(Request $request, Product $product): RedirectResponse

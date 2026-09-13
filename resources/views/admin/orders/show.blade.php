@@ -41,14 +41,14 @@
 
         <aside class="admin-order-panel">
             <h2>Customer information</h2>
-            <p>{{ $order->customer_name }}<br>{{ $order->customer_email }}<br>{{ $order->phone }}</p>
+            <p>{{ $order->customer_name }}<br><a href="mailto:{{ $order->customer_email }}">{{ $order->customer_email }}</a><br><a href="tel:{{ $order->phone }}">{{ $order->phone }}</a></p>
             <h3>Delivery address</h3>
             <p class="formatted-address">{{ $order->address }}</p>
             <h3>Payment summary</h3>
             <dl>
                 <div><dt>Subtotal</dt><dd>{{ number_format($order->subtotal, 2) }} EGP</dd></div>
-                <div><dt>Coupon</dt><dd>-{{ number_format($order->coupon_discount, 2) }} EGP</dd></div>
-                <div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format($order->points_discount, 2) }} EGP</dd></div>
+                @if((float)$order->coupon_discount > 0)<div><dt>Coupon {{ $order->coupon_code }}</dt><dd>-{{ number_format($order->coupon_discount, 2) }} EGP</dd></div>@endif
+                @if($order->points_redeemed > 0)<div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format($order->points_discount, 2) }} EGP</dd></div>@endif
                 <div><dt>Shipping</dt><dd>{{ number_format($order->shipping_fee, 2) }} EGP</dd></div>
                 <div><dt>Total</dt><dd>{{ number_format($order->total, 2) }} EGP</dd></div>
                 <div><dt>Points earned</dt><dd>{{ number_format($order->points_earned) }}</dd></div>

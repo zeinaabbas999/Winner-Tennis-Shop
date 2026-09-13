@@ -49,15 +49,16 @@
                     </form>
                 </article>
             @empty
-                <x-empty-state kind="cart" title="Your bag is empty" text="Add something built for the court." :href="route('products.index')" action="Shop products" />
+                <x-empty-state kind="cart" title="Your cart is empty" text="Add something built for the court." :href="route('products.index')" action="Shop products" />
             @endforelse
 
             @if($cart->isNotEmpty())
                 <div class="cart-summary">
                     <div><span>Subtotal</span><strong>{{ number_format($subtotal, 2) }} EGP</strong></div>
+                    @if($coupon)<div class="cart-summary-discount"><span>Coupon {{ $coupon->code }}</span><strong>-{{ number_format($couponDiscount, 2) }} EGP</strong></div>@endif
                     <p>Delivery costs, if applicable, are confirmed at checkout.</p>
                     <form class="mb-3" method="POST" action="{{ route('cart.coupon.store') }}">@csrf<label class="form-label" for="coupon_code">Promo code</label><div class="d-flex gap-2"><input class="form-control" id="coupon_code" name="code" maxlength="50"><button class="btn btn-outline-dark">Apply</button></div></form>
-                    @if(session('coupon_code'))<form class="mb-3" method="POST" action="{{ route('cart.coupon.destroy') }}">@csrf @method('DELETE')<button class="btn btn-link p-0">Remove {{ session('coupon_code') }}</button></form>@endif
+                    @if($coupon)<form class="mb-3" method="POST" action="{{ route('cart.coupon.destroy') }}">@csrf @method('DELETE')<button class="btn btn-link p-0">Remove {{ $coupon->code }}</button></form>@endif
                     <a class="btn btn-dark w-100" href="{{ route('checkout.create') }}">Proceed to checkout</a>
                 </div>
             @endif

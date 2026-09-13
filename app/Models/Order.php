@@ -51,6 +51,11 @@ class Order extends Model
         return $this->hasMany(LoyaltyTransaction::class);
     }
 
+    public function returnExchangeRequests()
+    {
+        return $this->hasMany(ReturnExchangeRequest::class);
+    }
+
     public function canRequestCancellation(): bool
     {
         return in_array($this->status, ['pending', 'confirmed'], true) && $this->cancellation_status === null;

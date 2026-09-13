@@ -54,7 +54,7 @@
                                 <textarea id="delivery_notes" class="form-control" rows="3" name="delivery_notes">{{ old('delivery_notes') }}</textarea>
                             </div>
                         </div>
-                        <p class="checkout-supporting">Delivery timing and any applicable costs are confirmed with your order.</p>
+                        <p class="checkout-supporting">Delivery timing and any applicable costs are confirmed with your order.@if($freeShippingThreshold) Free shipping applies when eligible merchandise reaches {{ number_format((float)$freeShippingThreshold, 2) }} EGP.@endif</p>
                     </section>
                     <section class="customer-panel checkout-section checkout-payment" aria-labelledby="payment-details">
                         <p class="checkout-step">Payment</p>

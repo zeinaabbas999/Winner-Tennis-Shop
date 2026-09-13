@@ -19,6 +19,6 @@ class OrderController extends Controller
     {
         abort_unless($order->user_id === $request->user()->id, 403);
 
-        return view('orders.show', ['order' => $order->load('items.product')]);
+        return view('orders.show', ['order' => $order->load('items.product', 'returnExchangeRequests.orderItem')]);
     }
 }

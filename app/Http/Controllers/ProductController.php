@@ -83,16 +83,35 @@ class ProductController extends Controller
             fn (Builder $categoryQuery) => $categoryQuery->whereIn('slug', $categorySlugs),
         ));
         $query->when(! $category && isset($validated['category']), fn (Builder $builder) => $builder->whereHas('category', fn (Builder $categoryQuery) => $categoryQuery->where('slug', $validated['category'])));
-        $query->when($validated['search'] ?? null, fn (Builder $builder, string $term) => $builder->where(fn (Builder $search) => $search
-            ->where('name', 'like', "%{$term}%")
-            ->orWhere('brand', 'like', "%{$term}%")
-            ->orWhere('description', 'like', "%{$term}%")));
+        if ($term = trim($validated['search'] ?? '')) {
+            $normalized = strtolower($term);
+            $categoryTerms = match ($normalized) {
+                'bag', 'bags', 'tennis bag', 'tennis bags' => ['tennis-bags'],
+                'ball', 'balls', 'tennis ball', 'tennis balls' => ['tennis-balls'],
+                'racket', 'rackets', 'racquet', 'racquets' => ['tennis-rackets'],
+                'overgrip', 'overgrips', 'grip', 'grips' => ['grips-and-overgrips'],
+                'string', 'strings' => ['strings'],
+                'dampener', 'dampeners' => ['dampeners'],
+                'accessory', 'accessories' => ['dampeners', 'grips-and-overgrips', 'other-tennis-accessories'],
+                default => [],
+            };
+            $query->where(function (Builder $search) use ($term, $categoryTerms) {
+                $search->where('name', 'like', "%{$term}%")
+                    ->orWhere('brand', 'like', "%{$term}%")
+                    ->orWhere('specs', 'like', "%{$term}%")
+                    ->orWhereHas('category', fn (Builder $categoryQuery) => $categoryQuery
+                        ->where('name', 'like', "%{$term}%")
+                        ->when($categoryTerms !== [], fn (Builder $query) => $query->orWhereIn('slug', $categoryTerms)));
+            })->orderByRaw('CASE WHEN LOWER(name) = ? THEN 0 WHEN LOWER(name) LIKE ? THEN 1 WHEN LOWER(brand) = ? THEN 2 ELSE 3 END', [$normalized, "%{$normalized}%", $normalized]);
+        }
         $query->when($validated['brand'] ?? null, fn (Builder $builder, string $brand) => $builder->where('brand', $brand));
 
         match ($validated['sort'] ?? null) {
             'price_asc' => $query->orderByRaw('price * (100 - discount_percent) / 100'),
             'price_desc' => $query->orderByRaw('price * (100 - discount_percent) / 100 DESC'),
-            default => $query->latest(),
+            default => $category || $categorySlugs !== [] || $term
+                ? $query->orderBy('name')
+                : $query->orderByRaw("CASE (SELECT slug FROM categories WHERE categories.id = products.category_id) WHEN 'tennis-rackets' THEN 1 WHEN 'tennis-balls' THEN 2 WHEN 'tennis-bags' THEN 3 WHEN 'strings' THEN 4 WHEN 'dampeners' THEN 5 WHEN 'grips-and-overgrips' THEN 6 WHEN 'other-tennis-accessories' THEN 7 ELSE 8 END")->orderBy('products.name'),
         };
 
         $showBrandFilter = ! $category || in_array($category->slug, ['tennis-rackets', 'tennis-balls', 'tennis-bags', 'strings'], true);

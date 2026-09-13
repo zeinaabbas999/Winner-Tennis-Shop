@@ -8,12 +8,14 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\PolicyController as AdminPolicyController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductVariantController as AdminProductVariantController;
+use App\Http\Controllers\Admin\RequestController as AdminRequestController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\ShippingRateController as AdminShippingRateController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CustomerQuestionController;
 use App\Http\Controllers\GuestOrderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
@@ -21,6 +23,7 @@ use App\Http\Controllers\OrderCancellationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReturnExchangeRequestController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WishlistController;
@@ -34,6 +37,7 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 Route::view('/racket-guide', 'pages.racket-guide')->name('racket-guide');
 Route::view('/services', 'pages.services')->name('services');
 Route::view('/contact', 'pages.contact')->name('contact');
+Route::post('/contact/questions', [CustomerQuestionController::class, 'store'])->middleware('throttle:5,1')->name('questions.store');
 Route::get('/policies', [LegalController::class, 'policies'])->name('policies');
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [LegalController::class, 'terms'])->name('terms');
@@ -68,6 +72,7 @@ Route::middleware(['auth', 'customer.verified'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancellation', [OrderCancellationController::class, 'store'])->middleware('throttle:5,1')->name('orders.cancellation.store');
+    Route::post('/orders/{order}/returns', [ReturnExchangeRequestController::class, 'store'])->middleware('throttle:5,1')->name('orders.returns.store');
 });
 
 Route::middleware(['auth', 'admin'])
@@ -82,10 +87,14 @@ Route::middleware(['auth', 'admin'])
         Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::patch('orders/{order}/status', [AdminOrderController::class, 'update'])->name('orders.update');
         Route::patch('orders/{order}/cancellation', [AdminOrderController::class, 'reviewCancellation'])->name('orders.cancellation.review');
+        Route::get('requests', [AdminRequestController::class, 'index'])->name('requests.index');
+        Route::patch('requests/returns/{returnExchangeRequest}', [AdminRequestController::class, 'reviewReturn'])->name('requests.returns.update');
+        Route::patch('requests/questions/{customerQuestion}', [AdminRequestController::class, 'updateQuestion'])->name('requests.questions.update');
         Route::get('inventory', [AdminInventoryController::class, 'index'])->name('inventory.index');
         Route::patch('inventory/{product}', [AdminInventoryController::class, 'store'])->name('inventory.update');
         Route::resource('coupons', AdminCouponController::class)->except('show');
         Route::resource('shipping-rates', AdminShippingRateController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::patch('shipping-rates-threshold', [AdminShippingRateController::class, 'threshold'])->name('shipping-rates.threshold');
         Route::post('products/{product}/variants', [AdminProductVariantController::class, 'store'])->name('products.variants.store');
         Route::patch('products/{product}/variants/{variant}', [AdminProductVariantController::class, 'update'])->name('products.variants.update');
         Route::delete('products/{product}/variants/{variant}', [AdminProductVariantController::class, 'destroy'])->name('products.variants.destroy');

@@ -12,6 +12,7 @@ use App\Models\ShippingRate;
 use App\Models\User;
 use App\Support\Cart;
 use App\Support\Loyalty;
+use App\Support\Shipping;
 use App\Support\VerificationRequirement;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,7 @@ use Throwable;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private Cart $cart, private VerificationRequirement $verification, private Loyalty $loyalty) {}
+    public function __construct(private Cart $cart, private VerificationRequirement $verification, private Loyalty $loyalty, private Shipping $shipping) {}
 
     public function create(): View|RedirectResponse
     {
@@ -43,7 +44,7 @@ class CheckoutController extends Controller
         $subtotal = $this->cart->subtotal($items);
         $coupon = $this->couponFor($subtotal, request()->user()?->id, request()->user()?->email);
 
-        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'checkoutToken' => $checkoutToken, 'availablePoints' => request()->user()?->loyalty_points ?? 0]);
+        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'freeShippingThreshold' => $this->shipping->threshold(), 'checkoutToken' => $checkoutToken, 'availablePoints' => request()->user()?->loyalty_points ?? 0]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
@@ -94,7 +95,7 @@ class CheckoutController extends Controller
                 if (! $shippingRate && ShippingRate::where('is_active', true)->exists()) {
                     throw ValidationException::withMessages(['governorate' => 'Please choose a supported delivery governorate.']);
                 }
-                $shipping = $shippingRate?->feeFor($merchandisePayable) ?? '0.00';
+                $shipping = $this->shipping->feeFor($shippingRate, $merchandisePayable);
                 $total = bcadd(bcsub($merchandisePayable, $pointsDiscount, 2), $shipping, 2);
                 $order = Order::create(['user_id' => $user?->id, 'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)), 'checkout_token' => $validated['checkout_token'], 'guest_access_token' => $guestPlainToken ? hash('sha256', $guestPlainToken) : null, 'status' => 'pending', 'subtotal' => $subtotal, 'coupon_code' => $coupon?->code, 'coupon_discount' => $couponDiscount, 'points_redeemed' => $points, 'points_discount' => $pointsDiscount, 'shipping_fee' => $shipping, 'total' => $total, 'customer_name' => $validated['customer_name'], 'customer_email' => $validated['customer_email'], 'phone' => $validated['phone'], 'address' => $this->formatDeliveryAddress($validated)]);
                 if ($user) {

@@ -59,14 +59,23 @@
                     </section>
                     <section class="customer-panel order-detail-information">
                         <h2>Shipping information</h2>
-                        <p>{{ $order->customer_name }}<br>{{ $order->customer_email }}<br>{{ $order->phone }}</p>
+                        <p>{{ $order->customer_name }}<br><a href="mailto:{{ $order->customer_email }}">{{ $order->customer_email }}</a><br><a href="tel:{{ $order->phone }}">{{ $order->phone }}</a></p>
                         <p class="text-break formatted-address">{{ $order->address }}</p>
                         <h3>Payment details</h3>
                         <p>Cash on delivery</p>
                     </section>
                 </aside>
             </div>
-            @auth @if($order->user_id===auth()->id() && $order->canRequestCancellation())<section class="customer-panel mt-4"><h2>Request cancellation</h2><p>Requests are reviewed before an order is cancelled.</p><form method="POST" action="{{ route('orders.cancellation.store', $order) }}">@csrf<label class="form-label" for="reason">Reason</label><textarea class="form-control mb-3" id="reason" name="reason" rows="3" maxlength="1000" required></textarea><button class="btn btn-outline-dark">Send request</button></form></section>@elseif($order->cancellation_status)<p class="mt-4">Cancellation request: <strong>{{ ucfirst($order->cancellation_status) }}</strong></p>@endif @endauth
+            @auth
+                @if($order->user_id===auth()->id() && $order->canRequestCancellation())
+                    <section class="customer-panel order-request-panel"><h2>Request cancellation</h2><p>Requests are reviewed before an order is cancelled.</p><form method="POST" action="{{ route('orders.cancellation.store', $order) }}">@csrf<label class="form-label" for="cancellation-reason">Reason</label><textarea class="form-control" id="cancellation-reason" name="reason" rows="3" maxlength="1000" required></textarea><button class="btn btn-outline-dark">Send request</button></form></section>
+                @elseif($order->cancellation_status)
+                    <p class="order-request-status">Cancellation request: <strong>{{ ucfirst($order->cancellation_status) }}</strong></p>
+                @endif
+                @if($order->user_id===auth()->id() && in_array($order->status,['delivered','completed'],true))
+                    <section class="customer-panel order-request-panel"><h2>Return or exchange</h2><p>Choose one delivered item. Requests are reviewed before any next step is confirmed.</p><form method="POST" action="{{ route('orders.returns.store',$order) }}">@csrf<div class="row g-3"><div class="col-md-4"><label class="form-label" for="request-type">Type</label><select class="form-select" id="request-type" name="type" required><option value="return">Return</option><option value="exchange">Exchange</option></select></div><div class="col-md-8"><label class="form-label" for="request-item">Item</label><select class="form-select" id="request-item" name="order_item_id" required>@foreach($order->items as $item)<option value="{{ $item->id }}">{{ $item->product_name }}@if($item->variant_name) · {{ $item->variant_name }}@endif</option>@endforeach</select></div><div class="col-12"><label class="form-label" for="return-reason">Reason</label><textarea class="form-control" id="return-reason" name="reason" rows="3" maxlength="1500" required></textarea></div></div><button class="btn btn-outline-dark">Submit request</button></form>@if($order->returnExchangeRequests->isNotEmpty())<div class="order-request-history"><h3>Request history</h3>@foreach($order->returnExchangeRequests as $entry)<p><strong>{{ ucfirst($entry->type) }} · {{ ucfirst($entry->status) }}</strong><br>{{ $entry->orderItem?->product_name }}@if($entry->admin_note)<br>{{ $entry->admin_note }}@endif</p>@endforeach</div>@endif</section>
+                @endif
+            @endauth
         </div>
     </section>
 @endsection

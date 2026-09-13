@@ -22,6 +22,7 @@
                         href="{{ route('admin.categories.index') }}">Categories</a><a
                         class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}"
                         href="{{ route('admin.orders.index') }}">Orders</a><a
+                        class="{{ request()->routeIs('admin.requests.*') ? 'active' : '' }}" href="{{ route('admin.requests.index') }}">Requests</a><a
                         class="{{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}"
                         href="{{ route('admin.inventory.index') }}">Inventory</a><a
                         class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">Coupons</a><a
