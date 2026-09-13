@@ -51,7 +51,7 @@
             <section class="contact-question customer-panel">
                 <p class="eyebrow text-green">Quick question</p>
                 <h2>Ask us a quick question</h2>
-                <form method="POST" action="{{ route('questions.store') }}">@csrf
+                <form class="contact-question-form" method="POST" action="{{ route('questions.store') }}">@csrf
                     <div class="row g-3"><div class="col-md-6"><label class="form-label" for="question-name">Name</label><input class="form-control" id="question-name" name="name" value="{{ old('name', auth()->user()?->name) }}" maxlength="255" required></div><div class="col-md-6"><label class="form-label" for="question-email">Email</label><input class="form-control" id="question-email" type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" maxlength="255" required></div><div class="col-12"><label class="form-label" for="question">Question</label><textarea class="form-control" id="question" name="question" rows="5" maxlength="2000" required>{{ old('question') }}</textarea></div></div>
                     <button class="btn btn-dark mt-3">Submit question</button>
                 </form>

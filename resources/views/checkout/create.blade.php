@@ -64,6 +64,22 @@
                         <div class="payment-future"><strong>Future payment methods · Coming soon</strong><span>Card via Paymob and mobile wallet options can be added here when a secure gateway is connected.</span></div>
                     </section>
                     @auth
+                    @if($firstOrderEligible || $firstOrderOffer)
+                    <section class="customer-panel checkout-section first-order-reward" aria-labelledby="first-order-reward">
+                        <p class="checkout-step">First order</p><h2 id="first-order-reward">Your welcome offer</h2>
+                        @if($coupon)
+                            <p>A coupon is active. Remove it from your cart to use the first-order offer. Offers do not stack.</p>
+                        @elseif($firstOrderOffer)
+                            <p class="first-order-reward__result">Your reward: <strong>{{ $firstOrderOffer->label() }}</strong></p>
+                            <small>It will be applied automatically and recorded with this order.</small>
+                        @else
+                            <p>Spin once for a server-selected reward on your first WINNER order.</p>
+                            <div class="offer-wheel" aria-hidden="true"><span>5%</span><span>10%</span><span>15%</span><span>100</span><span>200</span><span>Free</span></div>
+                            <button class="btn btn-outline-dark" type="button" data-spin-offer data-url="{{ route('checkout.first-order-offer') }}">Spin for my offer</button>
+                            <p class="first-order-reward__result" data-spin-result aria-live="polite"></p>
+                        @endif
+                    </section>
+                    @endif
                     <section class="customer-panel checkout-section" aria-labelledby="rewards-details">
                         <p class="checkout-step">Rewards</p><h2 id="rewards-details">Use your points</h2>
                         <p>You have <strong>{{ number_format($availablePoints) }} points</strong>, worth up to {{ number_format($availablePoints * .10, 2) }} EGP.</p>

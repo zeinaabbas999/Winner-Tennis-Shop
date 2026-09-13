@@ -50,6 +50,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LoyaltyTransaction::class);
     }
 
+    public function firstOrderOffer()
+    {
+        return $this->hasOne(FirstOrderOffer::class);
+    }
+
     public function wishlistProductIds(): Collection
     {
         return $this->cachedWishlistProductIds ??= $this->wishlist()->pluck('products.id');

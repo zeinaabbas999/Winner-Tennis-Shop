@@ -48,6 +48,7 @@
             <dl>
                 <div><dt>Subtotal</dt><dd>{{ number_format($order->subtotal, 2) }} EGP</dd></div>
                 @if((float)$order->coupon_discount > 0)<div><dt>Coupon {{ $order->coupon_code }}</dt><dd>-{{ number_format($order->coupon_discount, 2) }} EGP</dd></div>@endif
+                @if($order->first_order_offer_label)<div><dt>{{ $order->first_order_offer_label }}</dt><dd>@if((float)$order->first_order_discount > 0)-{{ number_format($order->first_order_discount, 2) }} EGP@else Applied @endif</dd></div>@endif
                 @if($order->points_redeemed > 0)<div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format($order->points_discount, 2) }} EGP</dd></div>@endif
                 <div><dt>Shipping</dt><dd>{{ number_format($order->shipping_fee, 2) }} EGP</dd></div>
                 <div><dt>Total</dt><dd>{{ number_format($order->total, 2) }} EGP</dd></div>

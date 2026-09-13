@@ -52,6 +52,7 @@
                                 @endforeach
                                 <tr><td style="padding:16px 0 6px;">Subtotal</td><td style="padding:16px 0 6px;text-align:right;">{{ number_format((float) $order->subtotal, 2) }} EGP</td></tr>
                                 @if((float)$order->coupon_discount > 0)<tr><td style="padding:6px 0;">Coupon {{ $order->coupon_code }}</td><td style="padding:6px 0;text-align:right;">-{{ number_format((float) $order->coupon_discount, 2) }} EGP</td></tr>@endif
+                                @if($order->first_order_offer_label)<tr><td style="padding:6px 0;">{{ $order->first_order_offer_label }}</td><td style="padding:6px 0;text-align:right;">@if((float)$order->first_order_discount > 0)-{{ number_format((float)$order->first_order_discount, 2) }} EGP@else Applied @endif</td></tr>@endif
                                 @if($order->points_redeemed > 0)<tr><td style="padding:6px 0;">Rewards ({{ number_format($order->points_redeemed) }} points)</td><td style="padding:6px 0;text-align:right;">-{{ number_format((float) $order->points_discount, 2) }} EGP</td></tr>@endif
                                 <tr><td style="padding:6px 0;">Shipping</td><td style="padding:6px 0;text-align:right;">{{ number_format((float) $order->shipping_fee, 2) }} EGP</td></tr>
                                 <tr>

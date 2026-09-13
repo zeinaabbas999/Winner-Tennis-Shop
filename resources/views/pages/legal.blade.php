@@ -36,5 +36,8 @@
                 @endforeach
             </div>
         </div>
+        @if(in_array($policy->key, ['returns', 'exchanges'], true))
+            @include('pages.partials.policy-request', ['type' => $policy->key === 'returns' ? 'return' : 'exchange', 'items' => $eligibleItems[$policy->key === 'returns' ? 'return' : 'exchange'] ?? collect()])
+        @endif
     </article>
 @endsection

@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerQuestionController;
+use App\Http\Controllers\FirstOrderOfferController;
 use App\Http\Controllers\GuestOrderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalController;
@@ -69,10 +70,12 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'customer.verified'])->group(function () {
+    Route::post('/checkout/first-order-offer', [FirstOrderOfferController::class, 'store'])->middleware('throttle:3,1')->name('checkout.first-order-offer');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancellation', [OrderCancellationController::class, 'store'])->middleware('throttle:5,1')->name('orders.cancellation.store');
     Route::post('/orders/{order}/returns', [ReturnExchangeRequestController::class, 'store'])->middleware('throttle:5,1')->name('orders.returns.store');
+    Route::post('/policy-requests/{type}', [ReturnExchangeRequestController::class, 'storeFromPolicy'])->whereIn('type', ['return', 'exchange'])->middleware('throttle:5,1')->name('policy-requests.store');
 });
 
 Route::middleware(['auth', 'admin'])

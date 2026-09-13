@@ -36,6 +36,9 @@
                             Effective {{ $policy->effective_date?->format('d F Y') }}
                             · Last updated {{ $policy->updated_at->format('d F Y') }}
                         </small>
+                        @if(in_array($policy->key, ['returns', 'exchanges'], true))
+                            @include('pages.partials.policy-request', ['type' => $policy->key === 'returns' ? 'return' : 'exchange', 'items' => $eligibleItems[$policy->key === 'returns' ? 'return' : 'exchange'] ?? collect()])
+                        @endif
                     </section>
                 @endforeach
             </div>

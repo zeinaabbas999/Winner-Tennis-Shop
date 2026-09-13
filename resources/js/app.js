@@ -48,6 +48,64 @@ logoutDialogElement?.addEventListener('hidden.bs.modal', () => {
     pendingLogoutForm = null;
 });
 
+document.querySelector('[data-spin-offer]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const result = document.querySelector('[data-spin-result]');
+    const wheel = button.closest('.first-order-reward')?.querySelector('.offer-wheel');
+    button.disabled = true;
+    wheel?.classList.add('is-spinning');
+    result.textContent = 'Selecting your offer...';
+    try {
+        const response = await fetch(button.dataset.url, {
+            method: 'POST',
+            headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json'},
+        });
+        const payload = await response.json();
+        if (! response.ok) throw new Error(payload.message || Object.values(payload.errors || {})[0]?.[0] || 'Unable to claim offer.');
+        result.innerHTML = `Your reward: <strong>${payload.label}</strong>. It will be applied automatically.`;
+        button.remove();
+    } catch (error) {
+        result.textContent = error.message;
+        button.disabled = false;
+        wheel?.classList.remove('is-spinning');
+    }
+});
+
+const reminder = document.querySelector('[data-store-reminder]');
+if (reminder) {
+    const type = reminder.dataset.storeReminder;
+    const dismissedAt = Number(localStorage.getItem(`winner_${type}_reminder_dismissed`) || 0);
+    const shownThisSession = sessionStorage.getItem(`winner_${type}_reminder_shown`);
+    if (! shownThisSession && Date.now() - dismissedAt > 7 * 24 * 60 * 60 * 1000) {
+        window.setTimeout(() => {
+            reminder.hidden = false;
+            sessionStorage.setItem(`winner_${type}_reminder_shown`, '1');
+        }, 2200);
+    }
+    reminder.querySelector('[data-dismiss-reminder]')?.addEventListener('click', () => {
+        localStorage.setItem(`winner_${type}_reminder_dismissed`, String(Date.now()));
+        reminder.remove();
+    });
+}
+
+const celebration = document.querySelector('[data-order-celebration]');
+if (celebration && ! matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const key = `winner_order_celebrated_${celebration.dataset.orderCelebration}`;
+    if (! sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        celebration.className = 'order-confetti';
+        const colors = ['#163f32', '#9cbd4b', '#f4efdF', '#252723'];
+        for (let index = 0; index < 28; index += 1) {
+            const piece = document.createElement('i');
+            piece.style.setProperty('--x', `${Math.random() * 100}vw`);
+            piece.style.setProperty('--delay', `${Math.random() * .35}s`);
+            piece.style.setProperty('--color', colors[index % colors.length]);
+            celebration.appendChild(piece);
+        }
+        window.setTimeout(() => celebration.remove(), 2400);
+    }
+}
+
 const consentCookie = 'winner_cookie_consent';
 const consentPanel = document.querySelector('[data-cookie-consent]');
 

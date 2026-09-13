@@ -80,6 +80,19 @@
 </aside>
 @include('partials.alerts')
 <main>@yield('content')</main>
+@php
+    $reminderExcluded = request()->routeIs('cart.*', 'checkout.*', 'wishlist.*', 'privacy', 'terms', 'cookies', 'policies', 'contact', 'verification.*');
+    $cartReminderCount = array_sum(session('cart', []));
+    $wishlistReminderCount = auth()->check() ? auth()->user()->wishlist()->count() : 0;
+@endphp
+@if(! $reminderExcluded && $cartReminderCount > 0)
+    <aside class="store-reminder" hidden data-store-reminder="cart" role="status"><button type="button" aria-label="Dismiss cart reminder" data-dismiss-reminder>×</button><strong>Your cart is waiting</strong><span>{{ $cartReminderCount }} {{ Str::plural('item', $cartReminderCount) }} ready for checkout.</span><a href="{{ route('cart.index') }}">View cart</a></aside>
+@elseif(! $reminderExcluded && $wishlistReminderCount > 0)
+    <aside class="store-reminder" hidden data-store-reminder="wishlist" role="status"><button type="button" aria-label="Dismiss wishlist reminder" data-dismiss-reminder>×</button><strong>Saved for later</strong><span>{{ $wishlistReminderCount }} {{ Str::plural('item', $wishlistReminderCount) }} in your wishlist.</span><a href="{{ route('wishlist.index') }}">View wishlist</a></aside>
+@endif
+@if(session('order_placed'))
+    <div data-order-celebration="{{ session('order_placed') }}" aria-hidden="true"></div>
+@endif
 <footer>
     <div class="container footer-grid">
         <div><a class="brand" href="{{ route('home') }}">WINNER<span>.</span></a>

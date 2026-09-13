@@ -51,6 +51,7 @@
                         <dl>
                             <div><dt>Subtotal</dt><dd>{{ number_format((float) $order->subtotal, 2) }} EGP</dd></div>
                             @if((float)$order->coupon_discount>0)<div><dt>Coupon {{ $order->coupon_code }}</dt><dd>-{{ number_format((float)$order->coupon_discount,2) }} EGP</dd></div>@endif
+                            @if($order->first_order_offer_label)<div><dt>{{ $order->first_order_offer_label }}</dt><dd>@if((float)$order->first_order_discount>0)-{{ number_format((float)$order->first_order_discount,2) }} EGP@else Applied @endif</dd></div>@endif
                             @if($order->points_redeemed > 0)<div><dt>Rewards ({{ number_format($order->points_redeemed) }} points)</dt><dd>-{{ number_format((float)$order->points_discount,2) }} EGP</dd></div>@endif
                             <div><dt>Shipping</dt><dd>{{ number_format((float)$order->shipping_fee,2) }} EGP</dd></div>
                             <div class="order-detail-total"><dt>Total</dt><dd>{{ number_format((float) $order->total, 2) }} EGP</dd></div>
@@ -68,7 +69,7 @@
             </div>
             @auth
                 @if($order->user_id===auth()->id() && $order->canRequestCancellation())
-                    <section class="customer-panel order-request-panel"><h2>Request cancellation</h2><p>Requests are reviewed before an order is cancelled.</p><form method="POST" action="{{ route('orders.cancellation.store', $order) }}">@csrf<label class="form-label" for="cancellation-reason">Reason</label><textarea class="form-control" id="cancellation-reason" name="reason" rows="3" maxlength="1000" required></textarea><button class="btn btn-outline-dark">Send request</button></form></section>
+                    <section class="customer-panel order-request-panel"><h2>Request cancellation</h2><p>Requests are reviewed before an order is cancelled.</p><form class="cancellation-form" method="POST" action="{{ route('orders.cancellation.store', $order) }}">@csrf<label class="form-label" for="cancellation-reason">Reason</label><textarea class="form-control" id="cancellation-reason" name="reason" rows="3" maxlength="1000" required></textarea><button class="btn btn-outline-dark">Send request</button></form></section>
                 @elseif($order->cancellation_status)
                     <p class="order-request-status">Cancellation request: <strong>{{ ucfirst($order->cancellation_status) }}</strong></p>
                 @endif

@@ -36,6 +36,23 @@
             </table>
         </div>
     </section>
-    <div class="row g-4 mt-1"><section class="col-lg-7 admin-section"><h2>Orders over 14 days</h2><div class="analytics-bars">@forelse($ordersByDay as $point)<div title="{{ $point->orders }} orders, {{ number_format($point->revenue,2) }} EGP"><span style="height:{{ max(8,min(100,$point->orders*12)) }}%"></span><small>{{ \Carbon\Carbon::parse($point->day)->format('d M') }}</small></div>@empty<p>No recent order data.</p>@endforelse</div></section><section class="col-lg-5 admin-section"><h2>Top-selling products</h2><ol class="list-unstyled">@foreach($topProducts as $item)<li class="d-flex justify-content-between py-2"><span>{{ $item->product_name }}</span><strong>{{ $item->units }} units</strong></li>@endforeach</ol></section></div>
-    <section class="admin-section"><h2>Low-stock watch</h2><div class="d-flex flex-wrap gap-3">@foreach($lowStockProducts as $product)<a href="{{ route('admin.products.edit',$product) }}">{{ $product->name }} · {{ $product->stock }}</a>@endforeach</div></section>
+    @php($maxOrders = max(1, $ordersByDay->max('orders')))
+    <div class="admin-analytics-grid">
+        <section class="admin-section admin-chart-section">
+            <header><h2>Orders over 14 days</h2><p>Daily order count, including days with no orders.</p></header>
+            <div class="analytics-bars" aria-label="Orders over the last 14 days">
+                @foreach($ordersByDay as $point)
+                    <div title="{{ $point->orders }} orders, {{ number_format($point->revenue,2) }} EGP">
+                        <strong>{{ $point->orders }}</strong>
+                        <span style="height:{{ $point->orders ? max(8, ($point->orders / $maxOrders) * 100) : 2 }}%"></span>
+                        <small>{{ $point->day->format('d M') }}</small>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+        <div class="admin-analytics-side">
+            <section class="admin-section"><h2>Top-selling products</h2><ol class="list-unstyled">@forelse($topProducts as $item)<li class="d-flex justify-content-between py-2"><span>{{ $item->product_name }}</span><strong>{{ $item->units }} units</strong></li>@empty<li>No sales data yet.</li>@endforelse</ol></section>
+            <section class="admin-section"><h2>Low-stock watch</h2><div class="admin-stock-list">@forelse($lowStockProducts as $product)<a href="{{ route('admin.products.edit',$product) }}"><span>{{ $product->name }}</span><strong>{{ $product->stock }}</strong></a>@empty<p>No low-stock products.</p>@endforelse</div></section>
+        </div>
+    </div>
 @endsection
