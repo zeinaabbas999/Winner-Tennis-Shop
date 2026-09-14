@@ -78,16 +78,31 @@
         </div>
     </div>
 </aside>
+@include('partials.cookie-consent')
 @include('partials.alerts')
 <main>@yield('content')</main>
 @php
-    $reminderExcluded = request()->routeIs('cart.*', 'checkout.*', 'wishlist.*', 'privacy', 'terms', 'cookies', 'policies', 'contact', 'verification.*');
+    $engagementExcluded = request()->routeIs('cart.*', 'checkout.*', 'wishlist.*', 'privacy', 'terms', 'cookies', 'policies', 'contact', 'verification.*');
     $cartReminderCount = array_sum(session('cart', []));
-    $wishlistReminderCount = auth()->check() ? auth()->user()->wishlist()->count() : 0;
+    $wishlistReminderCount = ! $engagementExcluded && auth()->check() ? auth()->user()->wishlist()->count() : 0;
+    $showOfferPrompt = ! $engagementExcluded && app(\App\Support\FirstOrderOffers::class)->shouldPrompt(request());
 @endphp
-@if(! $reminderExcluded && $cartReminderCount > 0)
+@if($showOfferPrompt)
+    <div class="modal fade winner-offer-modal" id="firstOrderOffer" tabindex="-1" aria-labelledby="firstOrderOfferTitle" aria-hidden="true" inert data-offer-modal data-spin-url="{{ route('first-order-offer.store') }}" data-dismiss-url="{{ route('first-order-offer.dismiss') }}">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <button class="winner-offer-modal__close" type="button" data-bs-dismiss="modal" aria-label="Close first order offer">×</button>
+            <p class="eyebrow">First order offer</p>
+            <h2 id="firstOrderOfferTitle">A welcome from WINNER</h2>
+            <p>Spin once to unlock an offer for your first order.</p>
+            <div class="offer-wheel" aria-hidden="true"><span>5%</span><span>10%</span><span>15%</span><span>100</span><span>200</span><span>Free</span><b>W</b></div>
+            <button class="btn btn-light" type="button" data-spin-offer>Spin the wheel</button>
+            <p class="first-order-reward__result" data-spin-result aria-live="polite"></p>
+        </div></div>
+    </div>
+@endif
+@if(! $engagementExcluded && $cartReminderCount > 0)
     <aside class="store-reminder" hidden data-store-reminder="cart" role="status"><button type="button" aria-label="Dismiss cart reminder" data-dismiss-reminder>×</button><strong>Your cart is waiting</strong><span>{{ $cartReminderCount }} {{ Str::plural('item', $cartReminderCount) }} ready for checkout.</span><a href="{{ route('cart.index') }}">View cart</a></aside>
-@elseif(! $reminderExcluded && $wishlistReminderCount > 0)
+@elseif(! $engagementExcluded && $wishlistReminderCount > 0)
     <aside class="store-reminder" hidden data-store-reminder="wishlist" role="status"><button type="button" aria-label="Dismiss wishlist reminder" data-dismiss-reminder>×</button><strong>Saved for later</strong><span>{{ $wishlistReminderCount }} {{ Str::plural('item', $wishlistReminderCount) }} in your wishlist.</span><a href="{{ route('wishlist.index') }}">View wishlist</a></aside>
 @endif
 @if(session('order_placed'))
@@ -115,7 +130,6 @@
     <div class="container footer-bottom">© {{ date('Y') }} WINNER. Review our <a
             href="{{ route('policies') }}">shipping, returns and exchange policies</a>.</div>
 </footer>
-@include('partials.cookie-consent')
 <x-logout-dialog />
 </body>
 

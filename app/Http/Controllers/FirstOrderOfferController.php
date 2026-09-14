@@ -16,12 +16,21 @@ class FirstOrderOfferController extends Controller
         if ($request->session()->has('coupon_code')) {
             throw ValidationException::withMessages(['offer' => 'Remove the coupon before claiming a first-order offer.']);
         }
-        $offer = DB::transaction(function () use ($request, $offers) {
-            $user = User::lockForUpdate()->findOrFail($request->user()->id);
+        $offer = $request->user()
+            ? DB::transaction(function () use ($request, $offers) {
+                User::lockForUpdate()->findOrFail($request->user()->id);
 
-            return $offers->claim($user);
-        }, 3);
+                return $offers->claimForRequest($request);
+            }, 3)
+            : $offers->claimForRequest($request);
 
-        return response()->json(['label' => $offer->label()]);
+        return response()->json($offer);
+    }
+
+    public function dismiss(Request $request): JsonResponse
+    {
+        $request->session()->put('first_order_offer_prompt_dismissed', true);
+
+        return response()->json(['dismissed' => true]);
     }
 }

@@ -18,10 +18,12 @@
                             <option value="{{ $item->id }}">{{ $item->product_name }} · {{ $item->order->order_number }}</option>
                         @endforeach
                     </select>
+                    @error('order_item_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
                 <div>
                     <label class="form-label" for="{{ $type }}-reason">Reason</label>
                     <textarea class="form-control" id="{{ $type }}-reason" name="reason" rows="4" maxlength="1500" required></textarea>
+                    @error('reason')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
                 <button class="btn btn-dark" type="submit">Submit request</button>
             </form>

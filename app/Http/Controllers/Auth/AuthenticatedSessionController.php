@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\FirstOrderOffers;
 use App\Support\VerificationRequirement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,11 +24,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request, VerificationRequirement $verification): RedirectResponse
+    public function store(LoginRequest $request, VerificationRequirement $verification, FirstOrderOffers $offers): RedirectResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
+        $offers->reconcileGuest($request, $request->user());
 
         if (auth()->user()->role === 'admin') {
             return redirect()->route('admin.dashboard');

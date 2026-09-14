@@ -47,9 +47,16 @@ class CheckoutController extends Controller
         $coupon = $this->couponFor($subtotal, request()->user()?->id, request()->user()?->email);
 
         $user = request()->user();
-        $firstOrderOffer = $user?->firstOrderOffer()->whereNull('used_at')->first();
+        if ($user) {
+            $this->firstOrderOffers->reconcileGuest(request(), $user);
+        }
+        $checkoutOffer = ! $coupon ? ($user?->firstOrderOffer()->whereNull('used_at')->first() ?: $this->firstOrderOffers->guestReward(request())) : null;
+        $offerType = $checkoutOffer instanceof FirstOrderOffer ? $checkoutOffer->reward_type : ($checkoutOffer['reward_type'] ?? null);
+        $offerValue = $checkoutOffer instanceof FirstOrderOffer ? $checkoutOffer->reward_value : ($checkoutOffer['reward_value'] ?? null);
+        $offerDiscount = $offerType ? $this->firstOrderOffers->discountFor($offerType, (string) $offerValue, $subtotal) : '0.00';
+        $offerLabel = $checkoutOffer instanceof FirstOrderOffer ? $checkoutOffer->label() : ($offerType ? $this->firstOrderOffers->labelFor($offerType, (string) $offerValue) : null);
 
-        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'freeShippingThreshold' => $this->shipping->threshold(), 'checkoutToken' => $checkoutToken, 'availablePoints' => $user?->loyalty_points ?? 0, 'firstOrderOffer' => $firstOrderOffer, 'firstOrderEligible' => $user ? $this->firstOrderOffers->eligible($user) : false]);
+        return view('checkout.create', ['cart' => $items, 'subtotal' => (float) $subtotal, 'coupon' => $coupon, 'couponDiscount' => (float) ($coupon?->discountFor($subtotal) ?? 0), 'checkoutOfferLabel' => $offerLabel, 'checkoutOfferDiscount' => (float) $offerDiscount, 'shippingRates' => ShippingRate::where('is_active', true)->orderBy('governorate')->get(), 'freeShippingThreshold' => $this->shipping->threshold(), 'checkoutToken' => $checkoutToken, 'availablePoints' => $user?->loyalty_points ?? 0]);
     }
 
     public function store(CheckoutRequest $request): RedirectResponse
@@ -92,13 +99,19 @@ class CheckoutController extends Controller
                 $coupon = $this->couponFor($subtotal, $request->user()?->id, $validated['customer_email'], true);
                 $couponDiscount = $coupon?->discountFor($subtotal) ?? '0.00';
                 $offer = null;
+                $guestOffer = null;
                 $offerDiscount = '0.00';
-                if ($user && ! $coupon) {
+                if (! $coupon && $user) {
                     $offer = FirstOrderOffer::where('user_id', $user->id)->whereNull('used_at')->lockForUpdate()->first();
                     if ($offer && ! $user->orders()->where('status', '!=', 'cancelled')->exists()) {
                         $offerDiscount = $this->firstOrderOffers->discount($offer, $subtotal);
                     } else {
                         $offer = null;
+                    }
+                } elseif (! $coupon && ! $user) {
+                    $guestOffer = $this->firstOrderOffers->guestReward($request);
+                    if ($guestOffer) {
+                        $offerDiscount = $this->firstOrderOffers->discountFor($guestOffer['reward_type'], (string) $guestOffer['reward_value'], $subtotal);
                     }
                 }
                 $merchandisePayable = bcsub(bcsub($subtotal, $couponDiscount, 2), $offerDiscount, 2);
@@ -110,9 +123,11 @@ class CheckoutController extends Controller
                 if (! $shippingRate && ShippingRate::where('is_active', true)->exists()) {
                     throw ValidationException::withMessages(['governorate' => 'Please choose a supported delivery governorate.']);
                 }
-                $shipping = $offer?->reward_type === 'free_shipping' ? '0.00' : $this->shipping->feeFor($shippingRate, $merchandisePayable);
+                $freeShippingOffer = $offer?->reward_type === 'free_shipping' || ($guestOffer['reward_type'] ?? null) === 'free_shipping';
+                $shipping = $freeShippingOffer ? '0.00' : $this->shipping->feeFor($shippingRate, $merchandisePayable);
                 $total = bcadd(bcsub($merchandisePayable, $pointsDiscount, 2), $shipping, 2);
-                $order = Order::create(['user_id' => $user?->id, 'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)), 'checkout_token' => $validated['checkout_token'], 'guest_access_token' => $guestPlainToken ? hash('sha256', $guestPlainToken) : null, 'status' => 'pending', 'subtotal' => $subtotal, 'coupon_code' => $coupon?->code, 'coupon_discount' => $couponDiscount, 'first_order_offer_label' => $offer?->label(), 'first_order_discount' => $offerDiscount, 'points_redeemed' => $points, 'points_discount' => $pointsDiscount, 'shipping_fee' => $shipping, 'total' => $total, 'customer_name' => $validated['customer_name'], 'customer_email' => $validated['customer_email'], 'phone' => $validated['phone'], 'address' => $this->formatDeliveryAddress($validated)]);
+                $offerLabel = $offer?->label() ?? ($guestOffer ? $this->firstOrderOffers->labelFor($guestOffer['reward_type'], (string) $guestOffer['reward_value']) : null);
+                $order = Order::create(['user_id' => $user?->id, 'order_number' => 'ORD-'.now()->format('Ymd').'-'.strtoupper(Str::random(8)), 'checkout_token' => $validated['checkout_token'], 'guest_access_token' => $guestPlainToken ? hash('sha256', $guestPlainToken) : null, 'status' => 'pending', 'subtotal' => $subtotal, 'coupon_code' => $coupon?->code, 'coupon_discount' => $couponDiscount, 'first_order_offer_label' => $offerLabel, 'first_order_discount' => $offerDiscount, 'points_redeemed' => $points, 'points_discount' => $pointsDiscount, 'shipping_fee' => $shipping, 'total' => $total, 'customer_name' => $validated['customer_name'], 'customer_email' => $validated['customer_email'], 'phone' => $validated['phone'], 'address' => $this->formatDeliveryAddress($validated)]);
                 if ($offer) {
                     $offer->update(['used_at' => now(), 'order_id' => $order->id]);
                 }
@@ -149,7 +164,7 @@ class CheckoutController extends Controller
 
             return back()->withInput()->with('error', 'We could not place your order. Please try again.');
         }
-        $request->session()->forget(['cart', 'checkout_tokens', 'coupon_code']);
+        $request->session()->forget(['cart', 'checkout_tokens', 'coupon_code', FirstOrderOffers::GUEST_SESSION_KEY]);
         try {
             Mail::to($order->customer_email)->queue(new OrderConfirmed($order->load('items'), $guestPlainToken));
         } catch (Throwable $e) {

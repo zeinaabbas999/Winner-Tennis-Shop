@@ -40,9 +40,14 @@ class ProductController extends Controller
         $product->load(['category', 'variants' => fn ($query) => $query->where('is_active', true)])->loadCount('reviews')->loadAvg('reviews', 'rating');
         $reviews = $product->reviews()->with('user')->latest()->paginate(8);
         $userReview = $request->user()?->reviews()->whereBelongsTo($product)->first();
-        $recentIds = array_values(array_filter($request->session()->get('recently_viewed', []), fn ($id) => $id !== $product->id));
-        array_unshift($recentIds, $product->id);
-        $request->session()->put('recently_viewed', array_slice($recentIds, 0, 8));
+        $optionalConsent = $request->cookie('winner_cookie_consent') === 'accepted';
+        $recentIds = $optionalConsent ? array_values(array_filter($request->session()->get('recently_viewed', []), fn ($id) => $id !== $product->id)) : [];
+        if ($optionalConsent) {
+            array_unshift($recentIds, $product->id);
+            $request->session()->put('recently_viewed', array_slice($recentIds, 0, 8));
+        } else {
+            $request->session()->forget('recently_viewed');
+        }
         $related = Product::query()->with('category')->withCount('reviews')->withAvg('reviews', 'rating')->withSum('orderItems as sales_quantity', 'quantity')->withSum(['variants as variants_stock' => fn ($q) => $q->where('is_active', true)], 'stock')
             ->where('is_active', true)->whereKeyNot($product->id)
             ->orderByRaw('category_id = ? DESC', [$product->category_id])

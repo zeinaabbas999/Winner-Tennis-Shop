@@ -53,6 +53,8 @@ Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart
 Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('checkout.store');
+Route::post('/first-order-offer', [FirstOrderOfferController::class, 'store'])->middleware('throttle:3,1')->name('first-order-offer.store');
+Route::post('/first-order-offer/dismiss', [FirstOrderOfferController::class, 'dismiss'])->middleware('throttle:6,1')->name('first-order-offer.dismiss');
 Route::get('/guest/orders/{order}/{token}', [GuestOrderController::class, 'show'])->middleware('throttle:20,1')->name('guest.orders.show');
 
 Route::redirect('/dashboard', '/orders')->middleware(['auth', 'customer.verified'])->name('dashboard');
@@ -70,7 +72,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'customer.verified'])->group(function () {
-    Route::post('/checkout/first-order-offer', [FirstOrderOfferController::class, 'store'])->middleware('throttle:3,1')->name('checkout.first-order-offer');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancellation', [OrderCancellationController::class, 'store'])->middleware('throttle:5,1')->name('orders.cancellation.store');

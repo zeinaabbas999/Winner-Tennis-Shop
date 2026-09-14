@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\FirstOrderOffers;
 use App\Support\VerificationRequirement;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request, VerificationRequirement $verification): RedirectResponse
+    public function store(Request $request, VerificationRequirement $verification, FirstOrderOffers $offers): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -48,6 +49,7 @@ class RegisteredUserController extends Controller
         }
 
         Auth::login($user);
+        $offers->reconcileGuest($request, $user);
 
         return redirect()->route($verification->required() ? 'verification.notice' : 'orders.index');
     }
